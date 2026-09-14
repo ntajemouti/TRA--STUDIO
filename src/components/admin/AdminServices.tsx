@@ -22,12 +22,10 @@ interface AdminServicesProps {
 }
 
 const PRESET_IMAGES = [
-  { label: 'Podcast', url: '/services/podcast.jpg' },
-  { label: 'Shooting Photo', url: '/services/shooting.jpg' },
-  { label: 'Social Media', url: '/services/social-media.jpg' },
-  { label: 'Branding', url: '/services/branding.jpg' },
-  { label: 'Clip Teaser', url: '/services/clip-teaser.jpg' },
-  { label: 'Corporate', url: '/services/corporate.jpg' },
+  { label: 'Plateau 4K (Frontal)', url: '/catalog-photos/tra-studio-desktop-frontal.jpg' },
+  { label: 'Régie Directe (Mixer)', url: '/catalog-photos/tra-studio-desktop-angled.jpg' },
+  { label: 'Logo Officiel Studio', url: '/catalog-photos/tra-studio-desktop-modern-official-logo.jpg' },
+  { label: 'Ambiance Studio Témara', url: '/images/studio-hero-bg.jpg' },
 ];
 
 export const AdminServices: React.FC<AdminServicesProps> = ({
@@ -47,7 +45,7 @@ export const AdminServices: React.FC<AdminServicesProps> = ({
   const [featuresText, setFeaturesText] = useState('');
   const [popular, setPopular] = useState(false);
   const [badge, setBadge] = useState('');
-  const [imageUrl, setImageUrl] = useState('/services/podcast.jpg');
+  const [imageUrl, setImageUrl] = useState('/catalog-photos/tra-studio-desktop-frontal.jpg');
 
   const startEdit = (pkg: StudioPackage) => {
     setEditingPkg(pkg);
@@ -60,7 +58,7 @@ export const AdminServices: React.FC<AdminServicesProps> = ({
     setFeaturesText((pkg.features || []).join('\n'));
     setPopular(pkg.popular || false);
     setBadge(pkg.badge || '');
-    setImageUrl(pkg.imageUrl || '/services/podcast.jpg');
+    setImageUrl(pkg.imageUrl || '/catalog-photos/tra-studio-desktop-frontal.jpg');
   };
 
   const startCreate = () => {
@@ -74,7 +72,7 @@ export const AdminServices: React.FC<AdminServicesProps> = ({
     setFeaturesText('2 heures d’accès exclusif au plateau\nÉclairages & caméras 4K\nFichiers bruts délivrés immédiatement');
     setPopular(false);
     setBadge('Nouveau');
-    setImageUrl('/services/shooting.jpg');
+    setImageUrl('/catalog-photos/tra-studio-desktop-frontal.jpg');
   };
 
   const handleSaveForm = (e: React.FormEvent) => {
@@ -327,7 +325,7 @@ export const AdminServices: React.FC<AdminServicesProps> = ({
 
               <input
                 type="text"
-                placeholder="Chemin d'image (ex: /services/podcast.jpg ou URL en ligne)"
+                placeholder="Chemin d'image (ex: /catalog-photos/tra-studio-desktop-frontal.jpg ou URL en ligne)"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-700 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-studio-red"

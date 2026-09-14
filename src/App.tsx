@@ -35,6 +35,8 @@ import { QuoteModal } from './components/client/QuoteModal';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { HeroSection } from './components/showcase/HeroSection';
 import { PortfolioSection } from './components/showcase/PortfolioSection';
+import { ReferencesSection } from './components/showcase/ReferencesSection';
+import { InstagramSection } from './components/showcase/InstagramSection';
 import { ExperienceSection } from './components/showcase/ExperienceSection';
 import { EquipmentSection } from './components/showcase/EquipmentSection';
 import { FaqSection } from './components/showcase/FaqSection';
@@ -592,33 +594,24 @@ export function App() {
           {/* LANDING PAGE & SHOWCASE SECTIONS */}
           {!isQuoteMode && currentStep === 1 && (
             <div className="w-full space-y-4">
-              {/* 1. Hero Atmosphere Showcase with Carousel */}
+              {/* 1. Hero Atmosphere Showcase with Carousel (Howa Lowel) */}
               <div id="hero">
                 <HeroSection
                   settings={settings}
                   onStartBooking={() => {
-                    const el = document.getElementById('studios');
+                    const el = document.getElementById('catalogue');
                     el?.scrollIntoView({ behavior: 'smooth' });
                   }}
                   onExploreStudios={() => {
-                    const el = document.getElementById('studios');
+                    const el = document.getElementById('catalogue');
                     el?.scrollIntoView({ behavior: 'smooth' });
                   }}
                 />
               </div>
 
-              {/* 2. Portfolio & Réalisations Vidéo (id="portfolio") */}
-              <PortfolioSection
-                onStartBooking={() => {
-                  const el = document.getElementById('studios');
-                  el?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                onRequestQuote={() => setIsQuoteMode(true)}
-              />
-
-              {/* 3. Formules & Studios de Tournage (id="studios") */}
-              <section id="studios" className="py-12 sm:py-16 bg-studio-bg scroll-mt-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              {/* 2. Catalogue des Formules & Studios de Tournage (id="catalogue" & id="studios") */}
+              <section id="catalogue" className="py-12 sm:py-16 bg-studio-bg scroll-mt-20">
+                <div id="studios" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   <Step2Package
                     packages={packages}
                     selectedPackage={draft.selectedPackage}
@@ -629,22 +622,43 @@ export function App() {
                 </div>
               </section>
 
-              {/* 3. L'Expérience TRA Studio (id="experience") */}
+              {/* 3. Portfolio & Réalisations (id="portfolio") */}
+              <div id="portfolio" className="scroll-mt-20">
+                <PortfolioSection
+                  onStartBooking={() => {
+                    const el = document.getElementById('catalogue');
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  onRequestQuote={() => setIsQuoteMode(true)}
+                />
+              </div>
+
+              {/* 4. Références & Clients TRA Studio (id="references") */}
+              <div id="references" className="scroll-mt-20">
+                <ReferencesSection />
+              </div>
+
+              {/* 5. Instagram Feed 6 Posts TRA Studio (id="instagram") */}
+              <div id="instagram" className="scroll-mt-20">
+                <InstagramSection settings={settings} />
+              </div>
+
+              {/* 6. L'Expérience TRA Studio (id="experience") */}
               <div id="experience" className="scroll-mt-20">
                 <ExperienceSection />
               </div>
 
-              {/* 4. Fiche Technique Équipements (id="equipment") */}
+              {/* 7. Fiche Technique Équipements (id="equipment") */}
               <div id="equipment" className="scroll-mt-20">
                 <EquipmentSection />
               </div>
 
-              {/* 5. Questions Fréquentes FAQ (id="faq") */}
+              {/* 8. Questions Fréquentes FAQ (id="faq") */}
               <div id="faq" className="scroll-mt-20">
                 <FaqSection />
               </div>
 
-              {/* 6. Plan d'Accès & Localisation Studio (id="location") */}
+              {/* 9. Plan d'Accès & Localisation Studio (id="location") */}
               <div id="location" className="scroll-mt-20">
                 <LocationSection settings={settings} />
               </div>

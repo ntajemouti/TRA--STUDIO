@@ -78,39 +78,32 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               type="button"
+              onClick={() => scrollToSection('catalogue')}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Catalogue & Formules
+            </button>
+            <button
+              type="button"
               onClick={() => scrollToSection('portfolio')}
-              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+              className="hover:text-white transition-colors cursor-pointer"
             >
-              <span>Réalisations</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-studio-red"></span>
+              Portfolio
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection('studios')}
+              onClick={() => scrollToSection('references')}
               className="hover:text-white transition-colors cursor-pointer"
             >
-              Studios & Prestations
+              Références
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection('experience')}
-              className="hover:text-white transition-colors cursor-pointer"
+              onClick={() => scrollToSection('instagram')}
+              className="hover:text-pink-400 transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              L’Expérience
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection('equipment')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Équipements
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection('faq')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              FAQ
+              <span>Instagram</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span>
             </button>
             <button
               type="button"
@@ -209,39 +202,34 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               type="button"
+              onClick={() => scrollToSection('catalogue')}
+              className="text-left py-2 hover:text-white border-b border-zinc-900 flex items-center justify-between"
+            >
+              <span>Catalogue & Formules</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-mono">TARIFS</span>
+            </button>
+            <button
+              type="button"
               onClick={() => scrollToSection('portfolio')}
               className="text-left py-2 hover:text-white border-b border-zinc-900 flex items-center justify-between"
             >
-              <span>Réalisations & Portfolio</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-studio-red text-white font-bold">VIDÉO</span>
+              <span>Portfolio & Réalisations</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-studio-red text-white font-bold">PROJETS</span>
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection('studios')}
+              onClick={() => scrollToSection('references')}
               className="text-left py-2 hover:text-white border-b border-zinc-900"
             >
-              Studios & Prestations
+              Références & Partenaires
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection('experience')}
-              className="text-left py-2 hover:text-white border-b border-zinc-900"
+              onClick={() => scrollToSection('instagram')}
+              className="text-left py-2 hover:text-pink-400 border-b border-zinc-900 flex items-center justify-between text-pink-400 font-bold"
             >
-              L’Expérience TRA Studio
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection('equipment')}
-              className="text-left py-2 hover:text-white border-b border-zinc-900"
-            >
-              Équipements & Matériel
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection('faq')}
-              className="text-left py-2 hover:text-white border-b border-zinc-900"
-            >
-              Questions Fréquentes
+              <span>Instagram @tra__studio</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-400 border border-pink-500/30">FEED</span>
             </button>
             <button
               type="button"

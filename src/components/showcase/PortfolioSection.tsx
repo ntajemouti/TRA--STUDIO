@@ -1,19 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  PORTFOLIO_PROJECTS, 
-  PORTFOLIO_CATEGORIES, 
-  PortfolioProject 
-} from '../../data/portfolioData';
-import { VideoPlayerModal } from './VideoPlayerModal';
-import { 
-  Play, 
-  Film, 
   Sparkles, 
-  FolderGit2, 
-  ChevronDown, 
+  Film, 
+  Clapperboard, 
+  Layers, 
+  Camera, 
   Calendar, 
   ArrowRight,
-  ExternalLink
+  PlusCircle,
+  CheckCircle2,
+  X
 } from 'lucide-react';
 
 interface PortfolioSectionProps {
@@ -21,46 +17,133 @@ interface PortfolioSectionProps {
   onRequestQuote: () => void;
 }
 
+interface PortfolioItem {
+  id: string;
+  category: 'podcast' | 'spot' | 'motion' | 'moto';
+  categoryLabel: string;
+  slotNumber: string;
+  title: string;
+  subtitle: string;
+  badge: string;
+  specs: string[];
+}
+
+const PORTFOLIO_SLOTS: PortfolioItem[] = [
+  {
+    id: 'slot-1',
+    category: 'podcast',
+    categoryLabel: 'Podcast & Talk-Show',
+    slotNumber: '01',
+    title: 'Session Podcast Multicam 4K',
+    subtitle: 'Captation 3 caméras synchronisées, micros Shure SM7B et son broadcast.',
+    badge: 'Plateau 1',
+    specs: ['3 Angles 4K', 'Micros Shure', 'Régie Live'],
+  },
+  {
+    id: 'slot-2',
+    category: 'spot',
+    categoryLabel: 'Spot & Publicité',
+    slotNumber: '02',
+    title: 'Spot Publicitaire & Campagne Marque',
+    subtitle: 'Direction artistique, éclairages cinéma et étalonnage couleur soigné.',
+    badge: 'Commercial',
+    specs: ['Éclairage Cinéma', 'Cadreurs Dédiés', 'Rendu 4K Master'],
+  },
+  {
+    id: 'slot-3',
+    category: 'motion',
+    categoryLabel: 'Motion Design & 3D',
+    slotNumber: '03',
+    title: 'Animation Graphique & Modélisation 3D',
+    subtitle: 'Animations 2D/3D sur-mesure, habillage graphique et sound design dynamique.',
+    badge: 'Motion Graphics',
+    specs: ['Animation 2D/3D', 'Sound Design', 'Export Broadcast'],
+  },
+  {
+    id: 'slot-4',
+    category: 'moto',
+    categoryLabel: 'Tournage Moto & Action',
+    slotNumber: '04',
+    title: 'Tournage Extérieur Dynamique & Action',
+    subtitle: 'Prises de vue embarquées, stabilisation gimbal et équipe mobile tout terrain.',
+    badge: 'Action & Véhicules',
+    specs: ['Stabilisation Ronin', 'Haute Vitesse 120fps', 'Tournage Terrain'],
+  },
+  {
+    id: 'slot-5',
+    category: 'podcast',
+    categoryLabel: 'Podcast & Talk-Show',
+    slotNumber: '05',
+    title: 'Formats Courts Réseaux Sociaux 9:16',
+    subtitle: 'Création de Reels et TikToks verticaux à fort impact algorithmique.',
+    badge: 'Contenu Vertical',
+    specs: ['Format 9:16', 'Tubes Nanlite RGB', 'Montage Express'],
+  },
+  {
+    id: 'slot-6',
+    category: 'spot',
+    categoryLabel: 'Spot & Publicité',
+    slotNumber: '06',
+    title: 'Shooting Photo & Packshot Cyclo Blanc',
+    subtitle: 'Photos éditoriales et produits sur fond blanc infini avec flashs haute vitesse.',
+    badge: 'Studio Cyclo',
+    specs: ['Cyclo Infini', 'Flashs Studio', 'Retouche HD'],
+  },
+  {
+    id: 'slot-7',
+    category: 'motion',
+    categoryLabel: 'Motion Design & 3D',
+    slotNumber: '07',
+    title: 'Générique & Identité Visuelle Animée',
+    subtitle: 'Création d’intro vidéo, logos animés 3D et signatures de marque percutantes.',
+    badge: 'Identité de Marque',
+    specs: ['Intro 4K', 'Animation Typo', 'Sound FX'],
+  },
+  {
+    id: 'slot-8',
+    category: 'moto',
+    categoryLabel: 'Tournage Moto & Action',
+    slotNumber: '08',
+    title: 'Teasers & Vidéos Promo Événementielles',
+    subtitle: 'Clips promotionnels au rythme intense pour vos lancements et événements.',
+    badge: 'Cinématique',
+    specs: ['Montage Rythmé', 'Color Grading', 'Licences Musique'],
+  },
+];
+
+const CATEGORIES = [
+  { key: 'all', label: 'Tous les projets' },
+  { key: 'podcast', label: 'Podcasts & Talk-Shows' },
+  { key: 'spot', label: 'Spots & Publicités' },
+  { key: 'motion', label: 'Motion Design & 3D' },
+  { key: 'moto', label: 'Tournages Moto & Action' },
+];
+
 export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
   onStartBooking,
   onRequestQuote,
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [activeProject, setActiveProject] = useState<PortfolioProject | null>(null);
-  const [visibleCount, setVisibleCount] = useState<number>(12);
+  const [selectedCat, setSelectedCat] = useState('all');
+  const [activeSlot, setActiveSlot] = useState<PortfolioItem | null>(null);
 
-  // Filter projects by active tab
-  const filteredProjects = useMemo(() => {
-    if (selectedCategory === 'all') return PORTFOLIO_PROJECTS;
-    return PORTFOLIO_PROJECTS.filter((p) => p.category === selectedCategory);
-  }, [selectedCategory]);
-
-  const displayedProjects = useMemo(() => {
-    return filteredProjects.slice(0, visibleCount);
-  }, [filteredProjects, visibleCount]);
-
-  const handleCategoryChange = (key: string) => {
-    setSelectedCategory(key);
-    setVisibleCount(12);
-  };
-
-  const handleLoadMore = () => {
-    setVisibleCount((prev) => prev + 12);
-  };
+  const filteredSlots = useMemo(() => {
+    if (selectedCat === 'all') return PORTFOLIO_SLOTS;
+    return PORTFOLIO_SLOTS.filter((s) => s.category === selectedCat);
+  }, [selectedCat]);
 
   return (
     <section id="portfolio" className="py-14 sm:py-20 bg-zinc-950 text-white scroll-mt-20 relative overflow-hidden">
-      {/* Ambient background glow */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[300px] bg-studio-red/10 rounded-full blur-[140px] pointer-events-none"></div>
+      {/* Ambient decorative glow */}
+      <div className="absolute top-1/3 right-1/4 w-[500px] h-[300px] bg-studio-red/10 rounded-full blur-[140px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 relative z-10">
         {/* =========================================================================
             SECTION HEADER
            ========================================================================= */}
         <div className="text-center max-w-3xl mx-auto space-y-3.5">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-bold text-zinc-300 shadow-md">
-            <Sparkles className="w-3.5 h-3.5 text-studio-red" />
-            <span className="text-white font-black tracking-wider uppercase">PORTFOLIO & CATALOGUE</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-bold text-zinc-300 shadow-md">
+            <Sparkles className="w-4 h-4 text-studio-red" />
+            <span className="text-white font-black tracking-wider uppercase">PORTFOLIO & CRÉATIONS</span>
             <span className="text-zinc-600">•</span>
             <span className="text-studio-red">TRA STUDIO</span>
           </div>
@@ -70,28 +153,28 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
           </h2>
 
           <p className="text-sm sm:text-base text-zinc-400 font-normal leading-relaxed">
-            Parcourez les tournages studio, spots publicitaires, animations 3D motion design et vidéos institutionnelles réalisés pour nos partenaires et créateurs.
+            Découvrez nos catégories de projets : podcasts, tournages publicitaires, formats courts réseaux sociaux et animations 3D.
           </p>
         </div>
 
         {/* =========================================================================
-            CATEGORY FILTER TABS
+            CATEGORY TABS
            ========================================================================= */}
         <div className="flex items-center justify-center">
           <div className="inline-flex flex-wrap items-center justify-center gap-2 p-1.5 rounded-2xl bg-zinc-900/90 border border-zinc-800/90 shadow-xl max-w-full">
-            {PORTFOLIO_CATEGORIES.map((cat) => {
+            {CATEGORIES.map((cat) => {
+              const isActive = selectedCat === cat.key;
               const count = cat.key === 'all' 
-                ? PORTFOLIO_PROJECTS.length 
-                : PORTFOLIO_PROJECTS.filter((p) => p.category === cat.key).length;
-              const isActive = selectedCategory === cat.key;
+                ? PORTFOLIO_SLOTS.length 
+                : PORTFOLIO_SLOTS.filter((s) => s.category === cat.key).length;
               return (
                 <button
                   key={cat.key}
                   type="button"
-                  onClick={() => handleCategoryChange(cat.key)}
+                  onClick={() => setSelectedCat(cat.key)}
                   className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                     isActive
-                      ? 'bg-studio-red text-white shadow-lg shadow-studio-red/30 scale-102'
+                      ? 'bg-studio-red text-white shadow-lg shadow-studio-red/30'
                       : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
                   }`}
                 >
@@ -108,104 +191,85 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
         </div>
 
         {/* =========================================================================
-            PROJECTS GRID
+            PORTFOLIO GRID (Clean Minimalist Studio Placeholders)
            ========================================================================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {displayedProjects.map((project) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+          {filteredSlots.map((slot) => (
             <div
-              key={project.id}
-              onClick={() => setActiveProject(project)}
-              className="group relative rounded-2xl bg-zinc-900/60 border border-zinc-800/90 hover:border-zinc-700 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer hover:-translate-y-1"
+              key={slot.id}
+              onClick={() => setActiveSlot(slot)}
+              className="group relative rounded-2xl bg-zinc-900/70 border border-zinc-800/90 hover:border-zinc-700 overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1 text-left"
             >
-              {/* Thumbnail Area */}
-              <div className="relative aspect-video w-full overflow-hidden bg-black">
-                <img
-                  src={project.posterImage}
-                  alt={project.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover object-center filter brightness-90 group-hover:scale-105 group-hover:brightness-100 transition-all duration-500 ease-out"
-                />
+              {/* Card Media Frame / Atmospheric Placeholder */}
+              <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-5 flex flex-col justify-between border-b border-zinc-800/70 overflow-hidden">
+                {/* Subtle Studio Grid pattern */}
+                <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+                
+                {/* Red ambient corner glow on hover */}
+                <div className="absolute -top-10 -right-10 w-24 h-24 bg-studio-red/10 rounded-full blur-2xl group-hover:bg-studio-red/25 transition-colors"></div>
 
-                {/* Dark Vignette Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent"></div>
-
-                {/* Top Badges */}
-                <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
-                  <span className="px-2.5 py-1 rounded-lg bg-zinc-950/80 backdrop-blur-md border border-zinc-800 text-[10px] font-black uppercase tracking-wider text-zinc-300">
-                    {project.categoryLabel}
+                {/* Top badges */}
+                <div className="relative z-10 flex items-center justify-between">
+                  <span className="px-2 py-0.5 rounded-md bg-black/70 border border-zinc-800 text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
+                    PROJET #{slot.slotNumber}
                   </span>
-
-                  {project.localVideoUrl ? (
-                    <span className="px-2 py-0.5 rounded-md bg-studio-red text-white text-[10px] font-bold flex items-center gap-1 shadow-md animate-pulse">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                      Extrait 4K
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-zinc-400 text-[10px] font-mono border border-zinc-800">
-                      HD Master
-                    </span>
-                  )}
+                  <span className="px-2.5 py-0.5 rounded-full bg-studio-red/20 text-studio-red border border-studio-red/30 text-[10px] font-black uppercase tracking-wider">
+                    {slot.badge}
+                  </span>
                 </div>
 
-                {/* Centered Play Button */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-studio-red/90 group-hover:bg-studio-red text-white flex items-center justify-center shadow-xl shadow-studio-red/40 group-hover:scale-110 transition-transform duration-300">
-                    <Play className="w-5 h-5 fill-white translate-x-0.5" />
+                {/* Center Iconography */}
+                <div className="relative z-10 flex items-center justify-center my-3">
+                  <div className="w-12 h-12 rounded-2xl bg-zinc-800/60 border border-zinc-700/60 group-hover:border-studio-red group-hover:bg-studio-red/10 flex items-center justify-center text-zinc-400 group-hover:text-studio-red transition-all duration-300 shadow-inner">
+                    {slot.category === 'podcast' && <Camera className="w-6 h-6" />}
+                    {slot.category === 'spot' && <Film className="w-6 h-6" />}
+                    {slot.category === 'motion' && <Layers className="w-6 h-6" />}
+                    {slot.category === 'moto' && <Clapperboard className="w-6 h-6" />}
                   </div>
+                </div>
+
+                {/* Bottom spec pill */}
+                <div className="relative z-10 flex items-center justify-between text-[11px] text-zinc-400 pt-1 border-t border-white/5">
+                  <span className="font-semibold text-zinc-300">{slot.categoryLabel}</span>
+                  <span className="text-studio-red font-bold group-hover:translate-x-0.5 transition-transform">Détails →</span>
                 </div>
               </div>
 
-              {/* Card Meta Content */}
-              <div className="p-4 flex-1 flex flex-col justify-between space-y-3 bg-zinc-900/40">
-                <div className="space-y-1">
-                  <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-studio-red transition-colors line-clamp-1">
-                    {project.title}
+              {/* Card Text Content */}
+              <div className="p-5 space-y-3 bg-zinc-900/40 flex-1 flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <h3 className="text-base font-bold text-white group-hover:text-studio-red transition-colors leading-snug">
+                    {slot.title}
                   </h3>
-                  <p className="text-xs text-zinc-500 line-clamp-1 font-mono">
-                    {project.originalFilename}
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    {slot.subtitle}
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-zinc-400">
-                    <Film className="w-3 h-3 text-studio-red" />
-                    <span>TRA Studio Cut</span>
-                  </span>
-                  <span className="text-studio-red font-bold text-[11px] group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                    Visionner <ArrowRight className="w-3 h-3" />
-                  </span>
+                {/* Features Pills */}
+                <div className="pt-2 border-t border-zinc-800/70 flex flex-wrap gap-1.5">
+                  {slot.specs.map((sp, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 rounded-md bg-zinc-800/70 text-[10px] font-medium text-zinc-400 border border-zinc-700/50"
+                    >
+                      {sp}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* =========================================================================
-            LOAD MORE / EXPLORE ALL
-           ========================================================================= */}
-        {visibleCount < filteredProjects.length && (
-          <div className="text-center pt-2">
-            <button
-              type="button"
-              onClick={handleLoadMore}
-              className="h-12 px-7 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-white font-bold text-xs uppercase tracking-wider shadow-xl inline-flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
-            >
-              <span>Afficher plus de réalisations ({filteredProjects.length - visibleCount} restants)</span>
-              <ChevronDown className="w-4 h-4 text-studio-red" />
-            </button>
-          </div>
-        )}
-
-        {/* =========================================================================
-            BOTTOM STUDIO CALLOUT BANNER
-           ========================================================================= */}
+        {/* Bottom Banner */}
         <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-zinc-900 via-zinc-900/95 to-zinc-950 border border-zinc-800 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center md:text-left">
             <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
-              Vous avez un tournage ou un spot à réaliser ?
+              Prêt à concrétiser votre prochain projet vidéo ?
             </h3>
             <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
-              De la captation 4K multicaméra jusqu’à la modélisation 3D et le montage cinématographique, notre équipe technique concrétise votre vision.
+              Que ce soit pour un talk-show régulier, un spot publicitaire ou un shooting de marque, notre plateau et nos régisseurs sont à votre service.
             </p>
           </div>
 
@@ -223,22 +287,73 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
               className="h-11 px-6 rounded-xl bg-studio-red hover:bg-studio-redHover text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-studio-red/25 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
             >
               <Calendar className="w-3.5 h-3.5" />
-              <span>Réserver une session studio</span>
+              <span>Réserver une session</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Video Modal Player */}
-      {activeProject && (
-        <VideoPlayerModal
-          project={activeProject}
-          onClose={() => setActiveProject(null)}
-          onBookSimilar={() => {
-            setActiveProject(null);
-            onStartBooking();
-          }}
-        />
+      {/* Details Lightbox Modal */}
+      {activeSlot && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setActiveSlot(null)}
+        >
+          <div 
+            className="relative w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <div className="space-y-1">
+                <span className="text-[11px] font-mono text-studio-red uppercase tracking-wider font-bold">
+                  {activeSlot.categoryLabel}
+                </span>
+                <h3 className="text-xl font-black uppercase text-white">
+                  {activeSlot.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveSlot(null)}
+                className="p-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-sm text-zinc-300 leading-relaxed">
+              {activeSlot.subtitle}
+            </p>
+
+            <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 space-y-2">
+              <h4 className="text-xs font-bold uppercase text-zinc-400 tracking-wider">
+                Configuration technique prévue :
+              </h4>
+              <ul className="space-y-1.5 text-xs text-zinc-300">
+                {activeSlot.specs.map((sp, idx) => (
+                  <li key={idx} className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-studio-red shrink-0" />
+                    <span>{sp}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveSlot(null);
+                  onStartBooking();
+                }}
+                className="flex-1 h-11 rounded-xl bg-studio-red hover:bg-studio-redHover text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-studio-red/25 cursor-pointer"
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Réserver ce type de session</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );
