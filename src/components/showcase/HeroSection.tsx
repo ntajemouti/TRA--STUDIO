@@ -7,7 +7,10 @@ import {
   Phone, 
   ChevronLeft, 
   ChevronRight,
-  Clock
+  Volume2,
+  VolumeX,
+  Play,
+  Film
 } from 'lucide-react';
 
 interface HeroSectionProps {
@@ -16,38 +19,62 @@ interface HeroSectionProps {
   onExploreStudios: () => void;
 }
 
-const CAROUSEL_SLIDES = [
+interface CarouselSlide {
+  id: string;
+  image: string;
+  video?: string;
+  tag: string;
+  badge: string;
+  title: string;
+  subtitle: string;
+  details: string[];
+}
+
+const CAROUSEL_SLIDES: CarouselSlide[] = [
   {
     id: 'plateau-1',
+    video: '/videos/hero/hero-studio-cut.mp4',
     image: '/services/podcast.jpg',
-    tag: 'PLATEAU 1',
+    tag: 'PLATEAU 1 • VIDÉO 4K LIVE',
     badge: 'Standard Broadcast',
     title: 'Podcast & Talk-Show Multicam 4K',
     subtitle: '3 caméras 4K cinéma synchronisées, micros Shure SM7B et régisseur dédié pour une captation nette et fluide.',
     details: ['3 Caméras 4K Sync', 'Micros Shure SM7B', 'Régie en direct'],
   },
   {
+    id: 'motion-design',
+    video: '/videos/hero/hero-motion-design.mp4',
+    image: '/services/branding.jpg',
+    tag: 'ANIMATION & 3D',
+    badge: 'Motion Graphics & Spots',
+    title: 'Motion Design, Habillage & Spots TV',
+    subtitle: 'Conception graphique animée, modélisation 3D, effets visuels et sound design sur-mesure pour vos campagnes de marque.',
+    details: ['Animation 2D/3D', 'Sound design percutant', 'Diffusion broadcast'],
+  },
+  {
+    id: 'tournage-moto',
+    video: '/videos/hero/hero-moto-shoot.mp4',
+    image: '/services/clip-teaser.jpg',
+    tag: 'TOURNAGE ACTION & MOTO',
+    badge: 'Prises de Vue Mobiles',
+    title: 'Tournage Extérieur & Cadreurs Mobiles',
+    subtitle: 'Cadreurs stabilisés Ronin, caméras embarquées haute vitesse et réalisation dynamique sur le terrain.',
+    details: ['Stabilisation gimbal', 'Haute vitesse 120fps', 'Équipe mobile terrain'],
+  },
+  {
     id: 'plateau-2',
+    video: '/videos/hero/hero-dynamic-action.mp4',
     image: '/services/social-media.jpg',
-    tag: 'PLATEAU 2',
+    tag: 'PLATEAU 2 • FORMATS COURTS',
     badge: 'Contenu Vertical',
     title: 'Formats Courts Reels & TikTok 9:16',
     subtitle: 'Éclairages tubes LED Nanlite RGB programmables et cadrage chirurgical optimisé pour capter l’attention.',
     details: ['Format 9:16 Ultra-net', 'Lumières RGB sur-mesure', 'Montage court rapide'],
   },
   {
-    id: 'plateau-3',
-    image: '/services/podcast-multicam.jpg',
-    tag: 'PLATEAU 3',
-    badge: 'Table Ronde',
-    title: 'Grande Table Ronde & Masterclass',
-    subtitle: 'Capacité jusqu’à 4 intervenants au micro simultanément dans un décor acoustique insonorisé et accueillant.',
-    details: ['Jusqu’à 4 micros Shure', 'Ambiance lounge chaleureuse', 'Monitoring live'],
-  },
-  {
     id: 'studio-cyclo',
     image: '/services/shooting.jpg',
-    tag: 'STUDIO CYCLO',
+    tag: 'STUDIO CYCLO BLANC',
     badge: 'Shooting & Mode',
     title: 'Studio Photo Cyclo Blanc & Lookbook',
     subtitle: 'Cyclo blanc infini, flashs haute vitesse et projecteurs continus pour des portraits et visuels impeccables.',
@@ -57,7 +84,7 @@ const CAROUSEL_SLIDES = [
     id: 'regie',
     image: '/catalog-photos/tra-studio-desktop-angled.jpg',
     tag: 'RÉGIE DIRECTE',
-    badge: 'Export Immédiat',
+    badge: 'Export Immédiat SSD',
     title: 'Régie Technique & Commutation Live',
     subtitle: 'Table de mixage multipiste, contrôle vidéo en temps réel et remise immédiate de vos fichiers 4K sur SSD.',
     details: ['Enregistrement multipiste', 'Export 4K instantané', 'Sauvegarde sécurisée'],
@@ -65,12 +92,12 @@ const CAROUSEL_SLIDES = [
 ];
 
 const MINI_EXPLORE = [
-  { image: '/services/podcast.jpg', title: 'Podcast 4K', tag: '3 Caméras' },
-  { image: '/services/social-media.jpg', title: 'Reels 9:16', tag: 'RGB Néon' },
-  { image: '/services/shooting.jpg', title: 'Photo Cyclo', tag: 'Fond Blanc' },
-  { image: '/services/branding.jpg', title: 'Branding', tag: 'Produit' },
-  { image: '/services/clip-teaser.jpg', title: 'Teasers', tag: 'Cinéma' },
-  { image: '/services/corporate.jpg', title: 'Formation', tag: 'Interviews' },
+  { image: '/services/podcast.jpg', title: 'Podcast 4K', tag: 'Vidéo Live', hasVideo: true },
+  { image: '/services/branding.jpg', title: 'Motion Design', tag: 'Animation 3D', hasVideo: true },
+  { image: '/services/clip-teaser.jpg', title: 'Tournage Moto', tag: 'Action Extérieure', hasVideo: true },
+  { image: '/services/social-media.jpg', title: 'Reels 9:16', tag: 'RGB Néon', hasVideo: true },
+  { image: '/services/shooting.jpg', title: 'Photo Cyclo', tag: 'Fond Blanc', hasVideo: false },
+  { image: '/catalog-photos/tra-studio-desktop-angled.jpg', title: 'Régie & SSD', tag: 'Export Immédiat', hasVideo: false },
 ];
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -79,14 +106,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const timerRef = useRef<any>(null);
 
-  // Auto-play carousel every 5.5 seconds
+  // Auto-play carousel every 6.5 seconds
   useEffect(() => {
     if (!isPaused) {
       timerRef.current = setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % CAROUSEL_SLIDES.length);
-      }, 5500);
+      }, 6500);
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -100,6 +128,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % CAROUSEL_SLIDES.length);
   };
+
+  const currentSlideData = CAROUSEL_SLIDES[currentSlide];
 
   const phoneNum = settings.phone || '+212660719968';
   const waNumber = settings.whatsappNumber || '212660719968';
@@ -149,7 +179,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
           {/* Subtitle */}
           <p className="text-sm sm:text-base text-zinc-300 max-w-xl mx-auto font-normal leading-relaxed">
-            Tournage multicam 4K, micros professionnels et régie dédiée. Réservez votre créneau en toute simplicité.
+            Tournage multicam 4K, micros professionnels, réalisation dynamique et régie dédiée. Réservez votre créneau en toute simplicité.
           </p>
 
           {/* Action CTAs */}
@@ -206,21 +236,35 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                       isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
                     }`}
                   >
-                    {/* Slide Background Image */}
-                    <img
-                      src={slide.image}
-                      alt={slide.title}
-                      className={`w-full h-full object-cover object-center filter brightness-75 contrast-105 transition-transform duration-1000 ease-out ${
-                        isActive ? 'scale-100' : 'scale-105'
-                      }`}
-                    />
+                    {/* Slide Media: Video if available, else Image */}
+                    {slide.video ? (
+                      <video
+                        src={slide.video}
+                        poster={slide.image}
+                        autoPlay
+                        loop
+                        muted={isMuted}
+                        playsInline
+                        className={`w-full h-full object-cover object-center filter brightness-85 contrast-105 transition-transform duration-1000 ease-out ${
+                          isActive ? 'scale-100' : 'scale-105'
+                        }`}
+                      />
+                    ) : (
+                      <img
+                        src={slide.image}
+                        alt={slide.title}
+                        className={`w-full h-full object-cover object-center filter brightness-75 contrast-105 transition-transform duration-1000 ease-out ${
+                          isActive ? 'scale-100' : 'scale-105'
+                        }`}
+                      />
+                    )}
 
                     {/* Dark Gradients for Content Legibility */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-transparent pointer-events-none"></div>
 
                     {/* Slide Content Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-12 lg:p-16 z-20 flex flex-col justify-end text-left max-w-4xl space-y-3 sm:space-y-5">
+                    <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-12 lg:p-16 z-20 flex flex-col justify-end text-left max-w-4xl space-y-3 sm:space-y-5 pointer-events-auto">
                       {/* Badges */}
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="px-3.5 py-1 rounded-full bg-studio-red text-white text-[11px] sm:text-xs font-black uppercase tracking-wider shadow-md">
@@ -229,6 +273,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                         <span className="px-3.5 py-1 rounded-full bg-zinc-900/80 backdrop-blur-md border border-zinc-700 text-zinc-200 text-[11px] sm:text-xs font-semibold uppercase tracking-wider">
                           {slide.badge}
                         </span>
+                        {slide.video && (
+                          <span className="px-3 py-1 rounded-full bg-red-600/90 text-white font-mono text-[10px] font-black uppercase tracking-wider shadow-md backdrop-blur-md flex items-center gap-1.5 animate-pulse">
+                            <span className="w-2 h-2 rounded-full bg-white"></span>
+                            ● CLIP 4K
+                          </span>
+                        )}
                       </div>
 
                       {/* Title */}
@@ -272,7 +322,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <button
               type="button"
               onClick={prevSlide}
-              aria-label="Image précédente"
+              aria-label="Slide précédente"
               className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-zinc-950/70 hover:bg-studio-red border border-zinc-700 hover:border-studio-red text-white flex items-center justify-center transition-all shadow-2xl backdrop-blur-md active:scale-90 cursor-pointer"
             >
               <ChevronLeft className="w-6 h-6" />
@@ -281,11 +331,33 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <button
               type="button"
               onClick={nextSlide}
-              aria-label="Image suivante"
+              aria-label="Slide suivante"
               className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-zinc-950/70 hover:bg-studio-red border border-zinc-700 hover:border-studio-red text-white flex items-center justify-center transition-all shadow-2xl backdrop-blur-md active:scale-90 cursor-pointer"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
+
+            {/* Audio Toggle Button for Active Video Slide */}
+            {currentSlideData.video && (
+              <button
+                type="button"
+                onClick={() => setIsMuted(!isMuted)}
+                aria-label={isMuted ? "Activer le son de la vidéo" : "Couper le son"}
+                className="absolute bottom-5 left-6 sm:left-12 z-30 px-3.5 py-1.5 rounded-xl bg-black/75 hover:bg-zinc-800 border border-zinc-700/80 text-white flex items-center gap-2 text-xs font-bold shadow-xl backdrop-blur-md transition-all active:scale-95 cursor-pointer"
+              >
+                {isMuted ? (
+                  <>
+                    <VolumeX className="w-4 h-4 text-zinc-400" />
+                    <span className="hidden sm:inline text-zinc-300">Activer le son</span>
+                  </>
+                ) : (
+                  <>
+                    <Volume2 className="w-4 h-4 text-studio-red animate-pulse" />
+                    <span className="hidden sm:inline text-white font-semibold">Son activé</span>
+                  </>
+                )}
+              </button>
+            )}
 
             {/* Bottom Bar: Dots Pagination & Slide Counter */}
             <div className="absolute bottom-5 right-6 sm:right-12 z-30 flex items-center gap-3 sm:gap-4">
@@ -319,7 +391,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="space-y-3 text-left">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                Aperçu des univers de tournage
+                Aperçu des univers de tournage & vidéos
               </span>
               <span className="text-[11px] text-zinc-500 font-semibold hidden sm:inline">
                 Cliquez pour afficher dans le carrousel
@@ -349,6 +421,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500 filter brightness-80"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+
+                  {/* Top indicator if video */}
+                  {item.hasVideo && (
+                    <div className="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-studio-red/90 flex items-center justify-center shadow">
+                      <Play className="w-2.5 h-2.5 fill-white text-white translate-x-0.2" />
+                    </div>
+                  )}
+
                   <div className="absolute bottom-2.5 left-2.5 right-2.5 z-10 text-left">
                     <span className="text-[9px] font-bold uppercase tracking-wider text-studio-red">
                       {item.tag}

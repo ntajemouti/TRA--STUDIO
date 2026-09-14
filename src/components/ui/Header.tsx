@@ -78,6 +78,14 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               type="button"
+              onClick={() => scrollToSection('portfolio')}
+              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Réalisations</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-studio-red"></span>
+            </button>
+            <button
+              type="button"
               onClick={() => scrollToSection('studios')}
               className="hover:text-white transition-colors cursor-pointer"
             >
@@ -198,6 +206,14 @@ export const Header: React.FC<HeaderProps> = ({
               className="text-left py-2 hover:text-white border-b border-zinc-900"
             >
               Accueil
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('portfolio')}
+              className="text-left py-2 hover:text-white border-b border-zinc-900 flex items-center justify-between"
+            >
+              <span>Réalisations & Portfolio</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-studio-red text-white font-bold">VIDÉO</span>
             </button>
             <button
               type="button"

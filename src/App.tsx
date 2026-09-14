@@ -34,6 +34,7 @@ import { ClientAuthModal } from './components/client/ClientAuthModal';
 import { QuoteModal } from './components/client/QuoteModal';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { HeroSection } from './components/showcase/HeroSection';
+import { PortfolioSection } from './components/showcase/PortfolioSection';
 import { ExperienceSection } from './components/showcase/ExperienceSection';
 import { EquipmentSection } from './components/showcase/EquipmentSection';
 import { FaqSection } from './components/showcase/FaqSection';
@@ -606,7 +607,16 @@ export function App() {
                 />
               </div>
 
-              {/* 2. Formules & Studios de Tournage (id="studios") */}
+              {/* 2. Portfolio & Réalisations Vidéo (id="portfolio") */}
+              <PortfolioSection
+                onStartBooking={() => {
+                  const el = document.getElementById('studios');
+                  el?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                onRequestQuote={() => setIsQuoteMode(true)}
+              />
+
+              {/* 3. Formules & Studios de Tournage (id="studios") */}
               <section id="studios" className="py-12 sm:py-16 bg-studio-bg scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   <Step2Package
