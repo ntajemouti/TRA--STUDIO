@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapPin, Navigation, ExternalLink, Clock, Car } from 'lucide-react';
 import { StudioSettings } from '../../types';
+import { ScrollReveal } from '../ui/ScrollReveal';
 
 interface LocationSectionProps {
   settings: StudioSettings;
@@ -21,25 +22,28 @@ export const LocationSection: React.FC<LocationSectionProps> = ({ settings }) =>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
         {/* Section Heading */}
-        <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-extrabold uppercase tracking-widest text-zinc-300 shadow-md">
-            <MapPin className="w-3.5 h-3.5 text-studio-red" />
-            <span>Plan d'Accès & Situation</span>
+        <ScrollReveal animation="fade-down" duration={600}>
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-extrabold uppercase tracking-widest text-zinc-300 shadow-md">
+              <MapPin className="w-3.5 h-3.5 text-studio-red" />
+              <span>Plan d'Accès & Situation</span>
+            </div>
+            
+            <h2 className="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight">
+              Localisation de <span className="text-transparent bg-clip-text bg-gradient-to-r from-studio-red to-white">TRA Studio</span>
+            </h2>
+            
+            <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-2xl mx-auto">
+              Situé au cœur de Témara sur le Boulevard Hassan II. Studios insonorisés haut de gamme facilement accessibles depuis Témara, Rabat et toute la région.
+            </p>
           </div>
-          
-          <h2 className="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight">
-            Localisation de <span className="text-transparent bg-clip-text bg-gradient-to-r from-studio-red to-white">TRA Studio</span>
-          </h2>
-          
-          <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-2xl mx-auto">
-            Situé au cœur de Témara sur le Boulevard Hassan II. Studios insonorisés haut de gamme facilement accessibles depuis Témara, Rabat et toute la région.
-          </p>
-        </div>
+        </ScrollReveal>
 
         {/* 2-Column Card: Information & Map View */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Left Details Card */}
-          <div className="lg:col-span-5 bg-studio-card border border-studio-border rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-2xl text-left">
+          <ScrollReveal animation="fade-right" delay={100} duration={700} className="lg:col-span-5 h-full">
+            <div className="bg-studio-card border border-studio-border rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-2xl text-left h-full">
             <div className="space-y-6">
               <div className="space-y-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-studio-red bg-studio-red/10 px-3 py-1 rounded-full border border-studio-red/20 inline-block">
@@ -99,38 +103,41 @@ export const LocationSection: React.FC<LocationSectionProps> = ({ settings }) =>
               </a>
             </div>
           </div>
+        </ScrollReveal>
 
           {/* Right Map Embed Card */}
-          <div className="lg:col-span-7 bg-studio-card border border-studio-border rounded-3xl overflow-hidden shadow-2xl relative min-h-[350px] sm:min-h-[420px] flex flex-col">
-            <iframe
-              title="Google Maps TRA Studio Témara"
-              src="https://maps.google.com/maps?q=TRA+STUDIO,+Boulevard+Hassan+II,+Temara,+Morocco&t=&z=16&ie=UTF8&iwloc=&output=embed"
-              className="w-full h-full min-h-[380px] border-0 filter contrast-105"
-              loading="lazy"
-              allowFullScreen
-            ></iframe>
+          <ScrollReveal animation="fade-left" delay={200} duration={700} className="lg:col-span-7 h-full">
+            <div className="bg-studio-card border border-studio-border rounded-3xl overflow-hidden shadow-2xl relative min-h-[350px] sm:min-h-[420px] flex flex-col h-full">
+              <iframe
+                title="Google Maps TRA Studio Témara"
+                src="https://maps.google.com/maps?q=TRA+STUDIO,+Boulevard+Hassan+II,+Temara,+Morocco&t=&z=16&ie=UTF8&iwloc=&output=embed"
+                className="w-full h-full min-h-[380px] border-0 filter contrast-105"
+                loading="lazy"
+                allowFullScreen
+              ></iframe>
 
-            {/* Floating Overlay Badge on Map */}
-            <div className="absolute bottom-4 left-4 right-4 sm:right-auto bg-zinc-950/95 backdrop-blur-md border border-zinc-800 p-3.5 rounded-2xl shadow-2xl flex items-center justify-between sm:justify-start gap-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-3 h-3 rounded-full bg-studio-red animate-pulse"></div>
-                <div className="text-xs text-left">
-                  <span className="font-bold text-white">TRA Studio</span>
-                  <span className="text-zinc-400 text-[11px] block">Témara, Maroc</span>
+              {/* Floating Overlay Badge on Map */}
+              <div className="absolute bottom-4 left-4 right-4 sm:right-auto bg-zinc-950/95 backdrop-blur-md border border-zinc-800 p-3.5 rounded-2xl shadow-2xl flex items-center justify-between sm:justify-start gap-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-3 h-3 rounded-full bg-studio-red animate-pulse"></div>
+                  <div className="text-xs text-left">
+                    <span className="font-bold text-white">TRA Studio</span>
+                    <span className="text-zinc-400 text-[11px] block">Témara, Maroc</span>
+                  </div>
                 </div>
-              </div>
 
-              <a
-                href={itineraryUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3.5 py-1.5 rounded-xl bg-studio-red hover:bg-studio-redHover text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-lg shadow-studio-red/30"
-              >
-                <span>Y aller (GPS)</span>
-                <Navigation className="w-3 h-3 text-white" />
-              </a>
+                <a
+                  href={itineraryUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-1.5 rounded-xl bg-studio-red hover:bg-studio-redHover text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-lg shadow-studio-red/30"
+                >
+                  <span>Y aller (GPS)</span>
+                  <Navigation className="w-3 h-3 text-white" />
+                </a>
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </div>
     </section>

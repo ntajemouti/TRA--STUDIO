@@ -23,6 +23,7 @@ import {
 } from './data/storage';
 import { Header } from './components/ui/Header';
 import { Footer } from './components/ui/Footer';
+import { ScrollProgressBar } from './components/ui/ScrollProgressBar';
 import { StepProgress } from './components/client/StepProgress';
 import { Step1DateSlot } from './components/client/Step1DateSlot';
 import { Step2Package } from './components/client/Step2Package';
@@ -381,6 +382,9 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-studio-bg text-zinc-100 flex flex-col selection:bg-studio-red selection:text-white">
+      {/* Real-time Interactive Scroll Progress Bar */}
+      <ScrollProgressBar />
+
       {/* Studio Header */}
       <Header
         isAdmin={isAdminAuthenticated && isAdminRoute}

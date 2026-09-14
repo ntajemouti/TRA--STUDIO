@@ -6,11 +6,10 @@ import {
   Layers, 
   Camera, 
   Calendar, 
-  ArrowRight,
-  PlusCircle,
   CheckCircle2,
   X
 } from 'lucide-react';
+import { ScrollReveal } from '../ui/ScrollReveal';
 
 interface PortfolioSectionProps {
   onStartBooking: () => void;
@@ -140,157 +139,164 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
         {/* =========================================================================
             SECTION HEADER
            ========================================================================= */}
-        <div className="text-center max-w-3xl mx-auto space-y-3.5">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-bold text-zinc-300 shadow-md">
-            <Sparkles className="w-4 h-4 text-studio-red" />
-            <span className="text-white font-black tracking-wider uppercase">PORTFOLIO & CRÉATIONS</span>
-            <span className="text-zinc-600">•</span>
-            <span className="text-studio-red">TRA STUDIO</span>
+        <ScrollReveal animation="fade-down">
+          <div className="text-center max-w-3xl mx-auto space-y-3.5">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-bold text-zinc-300 shadow-md">
+              <Sparkles className="w-4 h-4 text-studio-red" />
+              <span className="text-white font-black tracking-wider uppercase">PORTFOLIO & CRÉATIONS</span>
+              <span className="text-zinc-600">•</span>
+              <span className="text-studio-red">TRA STUDIO</span>
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight">
+              Nos réalisations <span className="text-studio-red">& productions</span>
+            </h2>
+
+            <p className="text-sm sm:text-base text-zinc-400 font-normal leading-relaxed">
+              Découvrez nos catégories de projets : podcasts, tournages publicitaires, formats courts réseaux sociaux et animations 3D.
+            </p>
           </div>
-
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight">
-            Nos réalisations <span className="text-studio-red">& productions</span>
-          </h2>
-
-          <p className="text-sm sm:text-base text-zinc-400 font-normal leading-relaxed">
-            Découvrez nos catégories de projets : podcasts, tournages publicitaires, formats courts réseaux sociaux et animations 3D.
-          </p>
-        </div>
+        </ScrollReveal>
 
         {/* =========================================================================
             CATEGORY TABS
            ========================================================================= */}
-        <div className="flex items-center justify-center">
-          <div className="inline-flex flex-wrap items-center justify-center gap-2 p-1.5 rounded-2xl bg-zinc-900/90 border border-zinc-800/90 shadow-xl max-w-full">
-            {CATEGORIES.map((cat) => {
-              const isActive = selectedCat === cat.key;
-              const count = cat.key === 'all' 
-                ? PORTFOLIO_SLOTS.length 
-                : PORTFOLIO_SLOTS.filter((s) => s.category === cat.key).length;
-              return (
-                <button
-                  key={cat.key}
-                  type="button"
-                  onClick={() => setSelectedCat(cat.key)}
-                  className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                    isActive
-                      ? 'bg-studio-red text-white shadow-lg shadow-studio-red/30'
-                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
-                  }`}
-                >
-                  <span>{cat.label}</span>
-                  <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-zinc-800 text-zinc-500'
-                  }`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
+        <ScrollReveal animation="fade-up" delay={80}>
+          <div className="flex items-center justify-center">
+            <div className="inline-flex flex-wrap items-center justify-center gap-2 p-1.5 rounded-2xl bg-zinc-900/90 border border-zinc-800/90 shadow-xl max-w-full">
+              {CATEGORIES.map((cat) => {
+                const isActive = selectedCat === cat.key;
+                const count = cat.key === 'all' 
+                  ? PORTFOLIO_SLOTS.length 
+                  : PORTFOLIO_SLOTS.filter((s) => s.category === cat.key).length;
+                return (
+                  <button
+                    key={cat.key}
+                    type="button"
+                    onClick={() => setSelectedCat(cat.key)}
+                    className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                      isActive
+                        ? 'bg-studio-red text-white shadow-lg shadow-studio-red/30'
+                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
+                    }`}
+                  >
+                    <span>{cat.label}</span>
+                    <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-zinc-800 text-zinc-500'
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
 
         {/* =========================================================================
             PORTFOLIO GRID (Clean Minimalist Studio Placeholders)
            ========================================================================= */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
-          {filteredSlots.map((slot) => (
-            <div
-              key={slot.id}
-              onClick={() => setActiveSlot(slot)}
-              className="group relative rounded-2xl bg-zinc-900/70 border border-zinc-800/90 hover:border-zinc-700 overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1 text-left"
-            >
-              {/* Card Media Frame / Atmospheric Placeholder */}
-              <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-5 flex flex-col justify-between border-b border-zinc-800/70 overflow-hidden">
-                {/* Subtle Studio Grid pattern */}
-                <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
-                
-                {/* Red ambient corner glow on hover */}
-                <div className="absolute -top-10 -right-10 w-24 h-24 bg-studio-red/10 rounded-full blur-2xl group-hover:bg-studio-red/25 transition-colors"></div>
+          {filteredSlots.map((slot, idx) => (
+            <ScrollReveal key={slot.id} animation="fade-up" delay={idx * 70}>
+              <div
+                onClick={() => setActiveSlot(slot)}
+                className="group relative rounded-2xl bg-zinc-900/70 border border-zinc-800/90 hover:border-zinc-700 overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1 text-left h-full"
+              >
+                {/* Card Media Frame / Atmospheric Placeholder */}
+                <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-5 flex flex-col justify-between border-b border-zinc-800/70 overflow-hidden">
+                  {/* Subtle Studio Grid pattern */}
+                  <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+                  
+                  {/* Red ambient corner glow on hover */}
+                  <div className="absolute -top-10 -right-10 w-24 h-24 bg-studio-red/10 rounded-full blur-2xl group-hover:bg-studio-red/25 transition-colors"></div>
 
-                {/* Top badges */}
-                <div className="relative z-10 flex items-center justify-between">
-                  <span className="px-2 py-0.5 rounded-md bg-black/70 border border-zinc-800 text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
-                    PROJET #{slot.slotNumber}
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-studio-red/20 text-studio-red border border-studio-red/30 text-[10px] font-black uppercase tracking-wider">
-                    {slot.badge}
-                  </span>
-                </div>
+                  {/* Top badges */}
+                  <div className="relative z-10 flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-md bg-black/70 border border-zinc-800 text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
+                      PROJET #{slot.slotNumber}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-studio-red/20 text-studio-red border border-studio-red/30 text-[10px] font-black uppercase tracking-wider">
+                      {slot.badge}
+                    </span>
+                  </div>
 
-                {/* Center Iconography */}
-                <div className="relative z-10 flex items-center justify-center my-3">
-                  <div className="w-12 h-12 rounded-2xl bg-zinc-800/60 border border-zinc-700/60 group-hover:border-studio-red group-hover:bg-studio-red/10 flex items-center justify-center text-zinc-400 group-hover:text-studio-red transition-all duration-300 shadow-inner">
-                    {slot.category === 'podcast' && <Camera className="w-6 h-6" />}
-                    {slot.category === 'spot' && <Film className="w-6 h-6" />}
-                    {slot.category === 'motion' && <Layers className="w-6 h-6" />}
-                    {slot.category === 'moto' && <Clapperboard className="w-6 h-6" />}
+                  {/* Center Iconography */}
+                  <div className="relative z-10 flex items-center justify-center my-3">
+                    <div className="w-12 h-12 rounded-2xl bg-zinc-800/60 border border-zinc-700/60 group-hover:border-studio-red group-hover:bg-studio-red/10 flex items-center justify-center text-zinc-400 group-hover:text-studio-red transition-all duration-300 shadow-inner">
+                      {slot.category === 'podcast' && <Camera className="w-6 h-6" />}
+                      {slot.category === 'spot' && <Film className="w-6 h-6" />}
+                      {slot.category === 'motion' && <Layers className="w-6 h-6" />}
+                      {slot.category === 'moto' && <Clapperboard className="w-6 h-6" />}
+                    </div>
+                  </div>
+
+                  {/* Bottom spec pill */}
+                  <div className="relative z-10 flex items-center justify-between text-[11px] text-zinc-400 pt-1 border-t border-white/5">
+                    <span className="font-semibold text-zinc-300">{slot.categoryLabel}</span>
+                    <span className="text-studio-red font-bold group-hover:translate-x-0.5 transition-transform">Détails →</span>
                   </div>
                 </div>
 
-                {/* Bottom spec pill */}
-                <div className="relative z-10 flex items-center justify-between text-[11px] text-zinc-400 pt-1 border-t border-white/5">
-                  <span className="font-semibold text-zinc-300">{slot.categoryLabel}</span>
-                  <span className="text-studio-red font-bold group-hover:translate-x-0.5 transition-transform">Détails →</span>
+                {/* Card Text Content */}
+                <div className="p-5 space-y-3 bg-zinc-900/40 flex-1 flex flex-col justify-between">
+                  <div className="space-y-1.5">
+                    <h3 className="text-base font-bold text-white group-hover:text-studio-red transition-colors leading-snug">
+                      {slot.title}
+                    </h3>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      {slot.subtitle}
+                    </p>
+                  </div>
+
+                  {/* Features Pills */}
+                  <div className="pt-2 border-t border-zinc-800/70 flex flex-wrap gap-1.5">
+                    {slot.specs.map((sp, sIdx) => (
+                      <span
+                        key={sIdx}
+                        className="px-2 py-0.5 rounded-md bg-zinc-800/70 text-[10px] font-medium text-zinc-400 border border-zinc-700/50"
+                      >
+                        {sp}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-
-              {/* Card Text Content */}
-              <div className="p-5 space-y-3 bg-zinc-900/40 flex-1 flex flex-col justify-between">
-                <div className="space-y-1.5">
-                  <h3 className="text-base font-bold text-white group-hover:text-studio-red transition-colors leading-snug">
-                    {slot.title}
-                  </h3>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
-                    {slot.subtitle}
-                  </p>
-                </div>
-
-                {/* Features Pills */}
-                <div className="pt-2 border-t border-zinc-800/70 flex flex-wrap gap-1.5">
-                  {slot.specs.map((sp, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2 py-0.5 rounded-md bg-zinc-800/70 text-[10px] font-medium text-zinc-400 border border-zinc-700/50"
-                    >
-                      {sp}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
 
         {/* Bottom Banner */}
-        <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-zinc-900 via-zinc-900/95 to-zinc-950 border border-zinc-800 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 text-center md:text-left">
-            <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
-              Prêt à concrétiser votre prochain projet vidéo ?
-            </h3>
-            <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
-              Que ce soit pour un talk-show régulier, un spot publicitaire ou un shooting de marque, notre plateau et nos régisseurs sont à votre service.
-            </p>
-          </div>
+        <ScrollReveal animation="fade-up" delay={120}>
+          <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-zinc-900 via-zinc-900/95 to-zinc-950 border border-zinc-800 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center md:text-left">
+              <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                Prêt à concrétiser votre prochain projet vidéo ?
+              </h3>
+              <p className="text-xs sm:text-sm text-zinc-400 max-w-xl">
+                Que ce soit pour un talk-show régulier, un spot publicitaire ou un shooting de marque, notre plateau et nos régisseurs sont à votre service.
+              </p>
+            </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
-            <button
-              type="button"
-              onClick={onRequestQuote}
-              className="h-11 px-5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
-            >
-              Demander un devis sur-mesure
-            </button>
-            <button
-              type="button"
-              onClick={onStartBooking}
-              className="h-11 px-6 rounded-xl bg-studio-red hover:bg-studio-redHover text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-studio-red/25 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Réserver une session</span>
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={onRequestQuote}
+                className="h-11 px-5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
+              >
+                Demander un devis sur-mesure
+              </button>
+              <button
+                type="button"
+                onClick={onStartBooking}
+                className="h-11 px-6 rounded-xl bg-studio-red hover:bg-studio-redHover text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-studio-red/25 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Réserver une session</span>
+              </button>
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
       </div>
 
       {/* Details Lightbox Modal */}
