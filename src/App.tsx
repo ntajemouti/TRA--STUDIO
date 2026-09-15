@@ -35,6 +35,7 @@ import { ClientAuthModal } from './components/client/ClientAuthModal';
 import { QuoteModal } from './components/client/QuoteModal';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { HeroSection } from './components/showcase/HeroSection';
+import { ClientReelsSection } from './components/showcase/ClientReelsSection';
 import { PortfolioSection } from './components/showcase/PortfolioSection';
 import { ReferencesSection } from './components/showcase/ReferencesSection';
 import { InstagramSection } from './components/showcase/InstagramSection';
@@ -626,7 +627,17 @@ export function App() {
                 </div>
               </section>
 
-              {/* 3. Portfolio & Réalisations (id="portfolio") */}
+              {/* 3. Reels & Vidéos de nos clients (Podcasty Style with live TRA videos) */}
+              <div id="reels" className="scroll-mt-20">
+                <ClientReelsSection
+                  onStartBooking={() => {
+                    const el = document.getElementById('catalogue');
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                />
+              </div>
+
+              {/* 4. Portfolio & Réalisations (id="portfolio") */}
               <div id="portfolio" className="scroll-mt-20">
                 <PortfolioSection
                   onStartBooking={() => {

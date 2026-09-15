@@ -85,6 +85,13 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               type="button"
+              onClick={() => scrollToSection('reels')}
+              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <span>Reels Clients</span>
+            </button>
+            <button
+              type="button"
               onClick={() => scrollToSection('portfolio')}
               className="hover:text-white transition-colors cursor-pointer"
             >
@@ -207,6 +214,14 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <span>Catalogue & Formules</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-mono">TARIFS</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('reels')}
+              className="text-left py-2 hover:text-white border-b border-zinc-900 flex items-center justify-between text-white font-bold"
+            >
+              <span>Reels & Vidéos Clients</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold">REELS</span>
             </button>
             <button
               type="button"
