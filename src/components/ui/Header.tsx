@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, User, MessageCircle, X } from 'lucide-react';
+import { Calendar, MessageCircle } from 'lucide-react';
 import { StudioSettings } from '../../types';
 
 interface HeaderProps {
@@ -13,31 +13,46 @@ interface HeaderProps {
   onViewMyBooking?: () => void;
 }
 
+interface NavItem {
+  id: string;
+  label: string;
+  targetId: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: 'accueil', label: 'Accueil', targetId: 'hero' },
+  { id: 'services', label: 'Services', targetId: 'catalogue' },
+  { id: 'realisations', label: 'Réalisations', targetId: 'reels' },
+  { id: 'a-propos', label: 'A propos de nous', targetId: 'experience' },
+  { id: 'contact', label: 'Contact', targetId: 'location' },
+];
+
 export const Header: React.FC<HeaderProps> = ({
   isAdmin,
   settings,
   onExitAdmin,
   onResetClient,
   onStartBooking,
-  onOpenClientAuth,
-  hasActiveBooking,
-  onViewMyBooking,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<'accueil' | 'services' | 'a-propos' | 'contact'>('accueil');
+  const [activeSection, setActiveSection] = useState<string>('accueil');
+  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
 
   // Track active section on scroll
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPos = window.scrollY + 200;
+      const scrollPos = window.scrollY + 220;
       const contactEl = document.getElementById('location');
-      const aboutEl = document.getElementById('experience') || document.getElementById('portfolio');
+      const aboutEl = document.getElementById('experience');
+      const portfolioEl = document.getElementById('reels') || document.getElementById('portfolio');
       const servicesEl = document.getElementById('catalogue') || document.getElementById('studios');
 
       if (contactEl && scrollPos >= contactEl.offsetTop) {
         setActiveSection('contact');
       } else if (aboutEl && scrollPos >= aboutEl.offsetTop) {
         setActiveSection('a-propos');
+      } else if (portfolioEl && scrollPos >= portfolioEl.offsetTop) {
+        setActiveSection('realisations');
       } else if (servicesEl && scrollPos >= servicesEl.offsetTop) {
         setActiveSection('services');
       } else {
@@ -49,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (id: string, sectionKey: 'accueil' | 'services' | 'a-propos' | 'contact') => {
+  const scrollToSection = (id: string, sectionKey: string) => {
     setMobileMenuOpen(false);
     setActiveSection(sectionKey);
     if (onResetClient) onResetClient();
@@ -85,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[80px] sm:h-[88px] md:h-[96px] flex items-center justify-between">
         
         {/* =========================================================================
-            LEFT: OFFICIAL LOGO (Exact Podcasty Size & Prominence)
+            LEFT: OFFICIAL LOGO (Exact Podcasty Size & Space)
            ========================================================================= */}
         <button
           onClick={() => scrollToSection('hero', 'accueil')}
@@ -105,111 +120,59 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* =========================================================================
-            MIDDLE: NAVIGATION LINKS (Podcasty Style: Accueil, Services, A propos de nous, Contact)
-            - Pure white words
-            - Generous spacing between each item (gap-8 to gap-10)
-            - Clean Title Case
-            - Red accent on active link
+            MIDDLE: NAVIGATION LINKS (Podcasty Style with Interactive Mouse Hover)
+            - Accueil, Services, Réalisations, A propos de nous, Contact
+            - White words by default on black background
+            - On mouse hover (ghir b la souris, bla click):
+              Word turns RED + red underline appears dynamically under it!
            ========================================================================= */}
         {!isAdmin && (
-          <nav className="hidden lg:flex items-center gap-8 xl:gap-11 text-[15px] font-medium text-white">
-            {/* 1. Accueil */}
-            <button
-              type="button"
-              onClick={() => scrollToSection('hero', 'accueil')}
-              className={`relative py-2 transition-all cursor-pointer ${
-                activeSection === 'accueil'
-                  ? 'text-studio-red font-semibold'
-                  : 'text-white hover:text-studio-red'
-              }`}
-            >
-              <span>Accueil</span>
-              {activeSection === 'accueil' && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-studio-red rounded-full animate-in fade-in" />
-              )}
-            </button>
+          <nav
+            className="hidden lg:flex items-center gap-7 xl:gap-10 text-[15px] font-medium"
+            onMouseLeave={() => setHoveredNav(null)}
+          >
+            {NAV_ITEMS.map((item) => {
+              const isHovered = hoveredNav === item.id;
+              const isActive = !hoveredNav && activeSection === item.id;
+              const isHighlighted = isHovered || isActive;
 
-            {/* 2. Services */}
-            <button
-              type="button"
-              onClick={() => scrollToSection('catalogue', 'services')}
-              className={`relative py-2 transition-all cursor-pointer ${
-                activeSection === 'services'
-                  ? 'text-studio-red font-semibold'
-                  : 'text-white hover:text-studio-red'
-              }`}
-            >
-              <span>Services</span>
-              {activeSection === 'services' && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-studio-red rounded-full animate-in fade-in" />
-              )}
-            </button>
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onMouseEnter={() => setHoveredNav(item.id)}
+                  onClick={() => scrollToSection(item.targetId, item.id)}
+                  className="relative py-2.5 px-1 transition-colors duration-200 cursor-pointer group select-none"
+                >
+                  {/* The Word: White -> Red on hover */}
+                  <span
+                    className={`transition-colors duration-200 ${
+                      isHighlighted ? 'text-studio-red font-semibold' : 'text-white'
+                    }`}
+                  >
+                    {item.label}
+                  </span>
 
-            {/* 3. A propos de nous */}
-            <button
-              type="button"
-              onClick={() => scrollToSection('experience', 'a-propos')}
-              className={`relative py-2 transition-all cursor-pointer ${
-                activeSection === 'a-propos'
-                  ? 'text-studio-red font-semibold'
-                  : 'text-white hover:text-studio-red'
-              }`}
-            >
-              <span>A propos de nous</span>
-              {activeSection === 'a-propos' && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-studio-red rounded-full animate-in fade-in" />
-              )}
-            </button>
-
-            {/* 4. Contact */}
-            <button
-              type="button"
-              onClick={() => scrollToSection('location', 'contact')}
-              className={`relative py-2 transition-all cursor-pointer ${
-                activeSection === 'contact'
-                  ? 'text-studio-red font-semibold'
-                  : 'text-white hover:text-studio-red'
-              }`}
-            >
-              <span>Contact</span>
-              {activeSection === 'contact' && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-studio-red rounded-full animate-in fade-in" />
-              )}
-            </button>
+                  {/* The Red Underline: appears/transitions smoothly under hovered word */}
+                  <span
+                    className={`absolute bottom-0 left-0 right-0 h-[2.5px] bg-studio-red rounded-full transition-all duration-200 ease-out origin-center ${
+                      isHighlighted
+                        ? 'opacity-100 scale-x-100'
+                        : 'opacity-0 scale-x-0'
+                    }`}
+                  />
+                </button>
+              );
+            })}
           </nav>
         )}
 
         {/* =========================================================================
-            RIGHT: "Je réserve 📅" BUTTON (Red Pill, Exact Podcasty Style)
+            RIGHT: "Je réserve 📅" BUTTON ONLY (Mon Espace completely removed)
            ========================================================================= */}
         <div className="flex items-center gap-3">
           {!isAdmin ? (
             <>
-              {/* Espace Client (Subtle User Icon for logged in / returning clients) */}
-              {onOpenClientAuth && (
-                <button
-                  type="button"
-                  onClick={onOpenClientAuth}
-                  className="hidden md:flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                  title="Mon Espace Client"
-                >
-                  <User className="w-4 h-4 text-zinc-400 hover:text-white" />
-                  <span>Mon Espace</span>
-                </button>
-              )}
-
-              {/* Active Booking status pill */}
-              {hasActiveBooking && onViewMyBooking && (
-                <button
-                  onClick={onViewMyBooking}
-                  className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-zinc-900 border border-zinc-700 rounded-full hover:bg-zinc-800 transition-all cursor-pointer"
-                  title="Voir ma réservation"
-                >
-                  <span className="w-2 h-2 rounded-full bg-studio-red animate-pulse" />
-                  <span>Ma séance</span>
-                </button>
-              )}
-
               {/* The "Je réserve 📅" Button (Red Pill Outline & Glow) */}
               <button
                 type="button"
@@ -262,50 +225,26 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* =========================================================================
-          MOBILE DRAWER MENU (Clean, matched to 4 items + Je réserve)
+          MOBILE DRAWER MENU (Clean: 5 items + Je réserve, no Mon Espace)
          ========================================================================= */}
       {!isAdmin && mobileMenuOpen && (
         <div className="lg:hidden bg-black/98 border-b border-zinc-800 px-6 py-6 space-y-4 animate-in slide-in-from-top-2 duration-200">
           <div className="flex flex-col space-y-3 text-base font-semibold text-white">
-            <button
-              type="button"
-              onClick={() => scrollToSection('hero', 'accueil')}
-              className={`text-left py-2.5 border-b border-zinc-900 transition-colors ${
-                activeSection === 'accueil' ? 'text-studio-red font-bold' : 'hover:text-studio-red'
-              }`}
-            >
-              Accueil
-            </button>
-
-            <button
-              type="button"
-              onClick={() => scrollToSection('catalogue', 'services')}
-              className={`text-left py-2.5 border-b border-zinc-900 transition-colors ${
-                activeSection === 'services' ? 'text-studio-red font-bold' : 'hover:text-studio-red'
-              }`}
-            >
-              Services
-            </button>
-
-            <button
-              type="button"
-              onClick={() => scrollToSection('experience', 'a-propos')}
-              className={`text-left py-2.5 border-b border-zinc-900 transition-colors ${
-                activeSection === 'a-propos' ? 'text-studio-red font-bold' : 'hover:text-studio-red'
-              }`}
-            >
-              A propos de nous
-            </button>
-
-            <button
-              type="button"
-              onClick={() => scrollToSection('location', 'contact')}
-              className={`text-left py-2.5 border-b border-zinc-900 transition-colors ${
-                activeSection === 'contact' ? 'text-studio-red font-bold' : 'hover:text-studio-red'
-              }`}
-            >
-              Contact
-            </button>
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToSection(item.targetId, item.id)}
+                className={`text-left py-2.5 border-b border-zinc-900 transition-colors flex items-center justify-between ${
+                  activeSection === item.id ? 'text-studio-red font-bold' : 'hover:text-studio-red'
+                }`}
+              >
+                <span>{item.label}</span>
+                {activeSection === item.id && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
+                )}
+              </button>
+            ))}
           </div>
 
           <div className="pt-2 flex flex-col gap-3">
@@ -317,20 +256,6 @@ export const Header: React.FC<HeaderProps> = ({
               <span>Je réserve</span>
               <Calendar className="w-4 h-4 ml-0.5" />
             </button>
-
-            {onOpenClientAuth && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenClientAuth();
-                }}
-                className="w-full py-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-semibold flex items-center justify-center gap-2"
-              >
-                <User className="w-3.5 h-3.5 text-studio-red" />
-                <span>Mon Espace Client</span>
-              </button>
-            )}
 
             <a
               href={waUrl}
