@@ -21,6 +21,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'accueil', label: 'Accueil', targetId: 'hero' },
+  { id: 'studios', label: 'Nos Studios', targetId: 'studios' },
   { id: 'services', label: 'Services', targetId: 'catalogue' },
   { id: 'realisations', label: 'Réalisations', targetId: 'reels' },
   { id: 'a-propos', label: 'A propos de nous', targetId: 'experience' },
@@ -45,7 +46,8 @@ export const Header: React.FC<HeaderProps> = ({
       const contactEl = document.getElementById('location');
       const aboutEl = document.getElementById('experience');
       const portfolioEl = document.getElementById('reels') || document.getElementById('portfolio');
-      const servicesEl = document.getElementById('catalogue') || document.getElementById('studios');
+      const servicesEl = document.getElementById('catalogue');
+      const studiosEl = document.getElementById('studios');
 
       if (contactEl && scrollPos >= contactEl.offsetTop) {
         setActiveSection('contact');
@@ -55,6 +57,8 @@ export const Header: React.FC<HeaderProps> = ({
         setActiveSection('realisations');
       } else if (servicesEl && scrollPos >= servicesEl.offsetTop) {
         setActiveSection('services');
+      } else if (studiosEl && scrollPos >= studiosEl.offsetTop) {
+        setActiveSection('studios');
       } else {
         setActiveSection('accueil');
       }
@@ -128,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({
            ========================================================================= */}
         {!isAdmin && (
           <nav
-            className="hidden lg:flex items-center gap-7 xl:gap-10 text-[15px] font-medium"
+            className="hidden lg:flex items-center gap-6 xl:gap-9 text-[15px] font-medium"
             onMouseLeave={() => setHoveredNav(null)}
           >
             {NAV_ITEMS.map((item) => {
