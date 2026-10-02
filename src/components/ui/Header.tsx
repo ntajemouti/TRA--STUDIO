@@ -41,17 +41,17 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full bg-studio-bg/95 backdrop-blur-md border-b border-studio-border/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-        {/* Brand Logo & Studio Identity (Podcasty Style) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[80px] sm:h-[88px] md:h-[96px] flex items-center justify-between transition-all">
+        {/* Brand Logo & Studio Identity (Exact Podcasty Size & Space) */}
         <button
           onClick={onResetClient}
-          className="flex items-center focus:outline-none group cursor-pointer transition-all hover:opacity-95"
+          className="flex items-center py-2 pr-4 focus:outline-none group cursor-pointer transition-all hover:opacity-95"
           title={settings?.studioName || 'TRA Studio'}
         >
           <img
             src="/tra-logo.png"
             alt={settings?.studioName || 'TRA Studio'}
-            className="h-10 sm:h-12 md:h-[52px] w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]"
+            className="h-[52px] sm:h-[60px] md:h-[66px] lg:h-[69px] w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]"
           />
           {isAdmin && (
             <span className="ml-3 px-2 py-0.5 rounded text-[10px] font-bold bg-studio-red/20 text-studio-red border border-studio-red/40 uppercase tracking-wider">
