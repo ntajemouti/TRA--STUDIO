@@ -26,15 +26,12 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin }) => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           {/* Col 1: Brand & Identity */}
           <div className="space-y-3 md:col-span-2">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center">
               <img
                 src="/tra-logo.png"
-                alt={settings.studioName}
-                className="h-8 w-auto object-contain brightness-105"
+                alt={settings.studioName || 'TRA Studio'}
+                className="h-10 sm:h-12 w-auto object-contain"
               />
-              <span className="text-sm font-black tracking-widest uppercase text-white">
-                {settings.studioName || 'TRA STUDIO'}
-              </span>
             </div>
             <p className="text-xs text-zinc-400 max-w-md leading-relaxed">
               {settings.tagline ||

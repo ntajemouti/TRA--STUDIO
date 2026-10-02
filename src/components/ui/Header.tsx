@@ -42,28 +42,22 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-40 w-full bg-studio-bg/95 backdrop-blur-md border-b border-studio-border/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-        {/* Brand Logo & Studio Identity */}
+        {/* Brand Logo & Studio Identity (Podcasty Style) */}
         <button
           onClick={onResetClient}
-          className="flex items-center gap-3 text-left focus:outline-none group cursor-pointer"
+          className="flex items-center focus:outline-none group cursor-pointer transition-all hover:opacity-95"
           title={settings?.studioName || 'TRA Studio'}
         >
-          <div className="relative flex items-center justify-center h-10 w-auto">
-            <img
-              src="/tra-logo.png"
-              alt={settings?.studioName || 'TRA Studio'}
-              className="h-9 w-auto object-contain brightness-105 group-hover:scale-105 transition-transform"
-            />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs sm:text-sm font-black tracking-widest uppercase text-white group-hover:text-white transition-colors">
-              {settings?.studioName || 'TRA STUDIO'}
+          <img
+            src="/tra-logo.png"
+            alt={settings?.studioName || 'TRA Studio'}
+            className="h-10 sm:h-12 md:h-[52px] w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]"
+          />
+          {isAdmin && (
+            <span className="ml-3 px-2 py-0.5 rounded text-[10px] font-bold bg-studio-red/20 text-studio-red border border-studio-red/40 uppercase tracking-wider">
+              Admin
             </span>
-            <span className="text-[10px] text-studio-muted tracking-wider uppercase flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-studio-red inline-block animate-pulse"></span>
-              {isAdmin ? 'Espace Administrateur' : 'Témara • Production & Podcast'}
-            </span>
-          </div>
+          )}
         </button>
 
         {/* Desktop Navigation Links */}
