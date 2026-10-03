@@ -126,9 +126,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
 
             {/* Main Display Heading: Bebas Neue, tall, cinematic, impactful */}
-            <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-[5.5rem] xl:text-[6.5rem] tracking-wide uppercase leading-[0.92] text-white drop-shadow-2xl">
-              <span className="block">ICI, LES IDÉES</span>
-              <span className="block text-[#B00000]">SORTENT DU CADRE.</span>
+            <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-[5.5rem] xl:text-[6.2rem] tracking-wide uppercase leading-[0.92] text-white drop-shadow-2xl">
+              <span className="block">VOTRE PROCHAINE</span>
+              <span className="block">IDÉE FORTE</span>
+              <span className="block text-[#B00000]">COMMENCE ICI.</span>
             </h1>
 
             {/* Supporting Copy: Short, elegant, specific to TRA Studio */}
