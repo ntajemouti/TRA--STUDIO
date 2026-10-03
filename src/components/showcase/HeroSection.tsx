@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StudioSettings } from '../../types';
-import { Calendar, ArrowRight, Play, Sparkles } from 'lucide-react';
+import { Calendar, ArrowRight, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface HeroSectionProps {
   settings: StudioSettings;
@@ -8,51 +8,49 @@ interface HeroSectionProps {
   onExploreStudios: () => void;
 }
 
-interface GalleryAtmosphere {
+interface StudioPhoto {
   id: string;
   image: string;
-  category: string;
   title: string;
-  atmosphere: string;
+  category: string;
 }
 
-const DEFAULT_HERO_IMAGE = '/images/studios/studio-retro-creative.jpg';
-
-const GALLERY_ATMOSPHERES: GalleryAtmosphere[] = [
+const TRA_STUDIO_PHOTOS: StudioPhoto[] = [
+  {
+    id: 'studio-retro',
+    image: '/images/studios/studio-retro-creative.jpg',
+    title: 'Studio Rétro & Velours',
+    category: 'CRÉATIF & PODCAST',
+  },
   {
     id: 'studio-prestige',
     image: '/images/studios/studio-prestige-dark.jpg',
+    title: 'Studio Acoustique Or & Noir',
     category: 'PODCAST PRESTIGE',
-    title: 'Acoustique Or & Noir',
-    atmosphere: 'Setup Shure broadcast & fauteuils feutrés',
   },
   {
     id: 'studio-boucle',
     image: '/images/studios/studio-boucle-intimate.jpg',
+    title: 'Studio Warm Bouclé',
     category: 'INTERVIEW & TALK',
-    title: 'Warm & Minimalist',
-    atmosphere: 'Canapé bouclé, bois noble & éclairage chaud',
   },
   {
     id: 'studio-roundtable',
     image: '/images/studios/studio-roundtable-broadcast.jpg',
-    category: 'TABLE RONDE',
-    title: 'Débat 3 Intervenants',
-    atmosphere: 'Drapé profond & micros broadcast studio',
+    title: 'Plateau Table Ronde',
+    category: 'DÉBAT MULTICAM',
   },
   {
     id: 'studio-tra-neon',
     image: '/catalog-photos/tra-studio-desktop-modern-official-logo.jpg',
+    title: 'Plateau Signature TRA',
     category: 'PLATEAU TRA',
-    title: 'Signature Lumineuse',
-    atmosphere: 'Ambiance néon TRA & panneaux acoustiques',
   },
   {
     id: 'studio-production',
     image: '/catalog-photos/tra-studio-desktop-frontal.jpg',
+    title: 'Plateau Broadcast 4K',
     category: 'PRODUCTION & REELS',
-    title: 'Cadre Caméra 4K',
-    atmosphere: 'Direction artistique & optiques cinéma',
   },
 ];
 
@@ -60,17 +58,39 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onStartBooking,
   onExploreStudios,
 }) => {
-  const [activeImage, setActiveImage] = useState<string>(DEFAULT_HERO_IMAGE);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
-  const handleAtmosphereClick = (item: GalleryAtmosphere) => {
-    if (activeId === item.id) {
-      setActiveImage(DEFAULT_HERO_IMAGE);
-      setActiveId(null);
-    } else {
-      setActiveImage(item.image);
-      setActiveId(item.id);
+  // Automatic slideshow transition every 5 seconds
+  useEffect(() => {
+    if (isPaused) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % TRA_STUDIO_PHOTOS.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [isPaused]);
+
+  // Smooth scroll carousel container to keep active square visible and centered
+  useEffect(() => {
+    const container = carouselRef.current;
+    if (!container) return;
+    const activeChild = container.children[currentIndex] as HTMLElement;
+    if (activeChild) {
+      activeChild.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
     }
+  }, [currentIndex]);
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev === 0 ? TRA_STUDIO_PHOTOS.length - 1 : prev - 1));
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % TRA_STUDIO_PHOTOS.length);
   };
 
   const handleDiscoverClick = () => {
@@ -83,150 +103,180 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   };
 
   return (
-    <section className="relative w-full bg-[#0A0A0A] text-white pt-2 sm:pt-4 pb-8 sm:pb-12 overflow-hidden">
-      {/* Container with ample editorial breathing room */}
-      <div className="max-w-[1720px] mx-auto px-3 sm:px-6 lg:px-8">
+    <section 
+      className="relative w-full h-[86vh] min-h-[660px] max-h-[960px] bg-[#0A0A0A] overflow-hidden flex flex-col justify-between select-none"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* =========================================================================
+          1. FULL-WIDTH CINEMATIC HERO SLIDESHOW (Edge-to-edge, NO horizontal margins)
+         ========================================================================= */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {TRA_STUDIO_PHOTOS.map((photo, idx) => {
+          const isActive = idx === currentIndex;
+          return (
+            <div
+              key={photo.id}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                isActive ? 'opacity-100 z-0' : 'opacity-0 pointer-events-none -z-10'
+              }`}
+            >
+              <img
+                src={photo.image}
+                alt={photo.title}
+                className="w-full h-full object-cover object-center filter brightness-[0.80] contrast-[1.05]"
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* =========================================================================
+          2. SUBTLE OVERLAYS (No 35% heavy box! Photography remains 100% visible)
+         ========================================================================= */}
+      {/* Delicate global tint for text legibility without crushing the photo */}
+      <div className="absolute inset-0 bg-black/25 pointer-events-none z-1" />
+      
+      {/* Subtle top vignette for header contrast */}
+      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-1" />
+
+      {/* Subtle bottom vignette to anchor the square photo carousel */}
+      <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/70 via-40% to-transparent pointer-events-none z-1" />
+
+      {/* Gentle deep burgundy ambient glow in the top-left */}
+      <div className="absolute top-10 left-10 w-96 h-96 bg-studio-red/15 rounded-full blur-[160px] pointer-events-none z-1" />
+
+      {/* =========================================================================
+          3. HERO EDITORIAL TEXT (Clean, focused, separated from photos)
+         ========================================================================= */}
+      <div className="relative z-10 w-full px-6 sm:px-12 lg:px-16 xl:px-24 pt-10 sm:pt-14 lg:pt-16 max-w-4xl space-y-4 sm:space-y-6">
         
-        {/* =========================================================================
-            LARGE IMMERSIVE HERO CARD (Reference Inspired Composition, 100% TRA Identity)
-           ========================================================================= */}
-        <div className="relative w-full rounded-2xl sm:rounded-3xl lg:rounded-[32px] overflow-hidden border border-zinc-800/80 bg-[#0A0A0A] shadow-2xl min-h-[660px] sm:min-h-[720px] lg:min-h-[780px] xl:min-h-[820px] flex flex-col justify-between p-6 sm:p-10 md:p-12 lg:p-14 xl:p-16">
-          
-          {/* Main Background Image (Cross-fading with smooth cinematic transition) */}
-          <div className="absolute inset-0 z-0 overflow-hidden">
-            <img
-              key={activeImage}
-              src={activeImage}
-              alt="TRA Studio Atmosphère"
-              className="w-full h-full object-cover object-center filter brightness-[0.70] contrast-[1.08] transition-all duration-700 ease-out scale-100 hover:scale-[1.01]"
-            />
+        {/* Eyebrow Label: Audiovisual, podcast, photo */}
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-studio-red animate-pulse" />
+          <p className="font-sans text-xs sm:text-sm font-bold tracking-[0.25em] text-zinc-300 uppercase">
+            PODCAST <span className="text-studio-burgundyLight font-semibold">//</span> PRODUCTION <span className="text-studio-burgundyLight font-semibold">//</span> PHOTO
+          </p>
+        </div>
+
+        {/* Main Headline: Bebas Neue, bold, cinematic, unforgettable */}
+        <h1 className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.5rem] tracking-wide uppercase leading-[0.92] text-white drop-shadow-[0_4px_28px_rgba(0,0,0,0.95)]">
+          <span className="block">VOTRE PROCHAINE</span>
+          <span className="block">IDÉE FORTE</span>
+          <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#9E232B] via-[#75141B] to-[#C0392B] drop-shadow-md">
+            COMMENCE ICI.
+          </span>
+        </h1>
+
+        {/* Minimal CTAs (Clean, uncluttered, no heavy paragraphs blocking the photo) */}
+        <div className="pt-2 sm:pt-3 flex flex-wrap items-center gap-3 sm:gap-4">
+          {/* Primary CTA: Deep Burgundy Accent */}
+          <button
+            type="button"
+            onClick={onStartBooking}
+            className="h-12 sm:h-14 px-7 sm:px-9 rounded-full bg-studio-red hover:bg-studio-redHover text-white font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-2xl shadow-studio-red/40 hover:shadow-studio-red/60 transition-all duration-200 active:scale-95 flex items-center gap-2.5 cursor-pointer border border-[#75141B]/50 hover:scale-[1.02]"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Réserver un studio</span>
+            <ArrowRight className="w-4 h-4 ml-0.5" />
+          </button>
+
+          {/* Secondary CTA: Sleek Minimal Glass */}
+          <button
+            type="button"
+            onClick={handleDiscoverClick}
+            className="h-12 sm:h-14 px-6 sm:px-8 rounded-full bg-black/40 hover:bg-black/60 border border-white/20 hover:border-white/50 text-white font-semibold text-xs sm:text-sm uppercase tracking-wider backdrop-blur-md transition-all duration-200 active:scale-95 flex items-center gap-2 cursor-pointer hover:scale-[1.02]"
+          >
+            <Play className="w-3.5 h-3.5 fill-current text-white/90" />
+            <span>Découvrir nos réalisations</span>
+          </button>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          4. SQUARE PHOTO CAROUSEL (Consistent equal squares, auto-moves every ~5s)
+         ========================================================================= */}
+      <div className="relative z-10 w-full px-6 sm:px-12 lg:px-16 xl:px-24 pb-6 sm:pb-8 pt-4">
+        
+        {/* Carousel Header Bar: Minimal Label + Counter & Manual Controls */}
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center gap-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-studio-red animate-pulse" />
+            <span className="font-sans text-[11px] sm:text-xs font-bold tracking-widest text-zinc-300 uppercase">
+              Nos Plateaux &amp; Environnements de Tournage
+            </span>
           </div>
 
-          {/* Cinematic Dark Overlays (Ensures razor-sharp text readability without masking photography) */}
-          {/* 1. Left-to-right gradient for typographic hierarchy */}
-          <div className="absolute inset-0 z-1 bg-gradient-to-r from-[#0A0A0A]/95 via-[#0A0A0A]/85 via-45% to-[#0A0A0A]/30 lg:to-transparent pointer-events-none" />
-          
-          {/* 2. Bottom-to-top gradient for gallery strip grounding */}
-          <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/70 via-35% to-transparent pointer-events-none" />
-          
-          {/* 3. Subtle brand red ambient glow in the background */}
-          <div className="absolute top-1/4 left-1/12 w-[420px] h-[420px] bg-[#B00000]/12 rounded-full blur-[140px] pointer-events-none z-1" />
-
-          {/* =========================================================================
-              TOP & MIDDLE: TRA STUDIO EDITORIAL MESSAGING
-             ========================================================================= */}
-          <div className="relative z-10 max-w-3xl xl:max-w-4xl space-y-4 sm:space-y-6 pt-2 sm:pt-4">
-            
-            {/* Eyebrow Label: Confident, minimal & distinctive */}
-            <div className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-[#B00000] animate-pulse" />
-              <p className="font-sans text-xs sm:text-sm font-bold tracking-[0.25em] text-zinc-300 uppercase select-none">
-                PODCAST <span className="text-[#B00000] font-semibold">//</span> VIDÉO <span className="text-[#B00000] font-semibold">//</span> PHOTO
-              </p>
-            </div>
-
-            {/* Main Display Heading: Bebas Neue, tall, cinematic, impactful */}
-            <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-[5.5rem] xl:text-[6.2rem] tracking-wide uppercase leading-[0.92] text-white drop-shadow-2xl">
-              <span className="block">VOTRE PROCHAINE</span>
-              <span className="block">IDÉE FORTE</span>
-              <span className="block text-[#B00000]">COMMENCE ICI.</span>
-            </h1>
-
-            {/* Supporting Copy: Short, elegant, specific to TRA Studio */}
-            <p className="font-sans text-sm sm:text-base lg:text-lg text-zinc-300 font-normal leading-relaxed max-w-xl drop-shadow">
-              Un studio de création audiovisuelle &amp; podcast d'exception à Témara. Nous transformons vos idées en images, en voix et en contenu qui marque.
-            </p>
-
-            {/* Clear Primary & Secondary CTAs */}
-            <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-3 sm:gap-4">
-              {/* Primary CTA: TRA Red Accent */}
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-xs text-zinc-400 font-semibold tracking-wider hidden sm:inline">
+              0{currentIndex + 1} / 0{TRA_STUDIO_PHOTOS.length}
+            </span>
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={onStartBooking}
-                className="h-12 sm:h-14 px-7 sm:px-9 rounded-full bg-[#B00000] hover:bg-[#8F0000] text-white font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-xl shadow-[#B00000]/30 hover:shadow-[#B00000]/50 hover:scale-[1.02] active:scale-95 transition-all duration-200 flex items-center gap-2.5 cursor-pointer"
+                onClick={prevSlide}
+                aria-label="Plateau précédent"
+                className="w-8 h-8 rounded-full bg-black/60 hover:bg-studio-red border border-zinc-800 hover:border-studio-red text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm active:scale-95"
               >
-                <Calendar className="w-4 h-4" />
-                <span>Réserver un studio</span>
-                <ArrowRight className="w-4 h-4 ml-0.5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
-
-              {/* Secondary CTA: Minimal Premium Border */}
               <button
                 type="button"
-                onClick={handleDiscoverClick}
-                className="h-12 sm:h-14 px-6 sm:px-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/50 text-white font-semibold text-xs sm:text-sm uppercase tracking-wider backdrop-blur-md hover:scale-[1.02] active:scale-95 transition-all duration-200 flex items-center gap-2 cursor-pointer"
+                onClick={nextSlide}
+                aria-label="Plateau suivant"
+                className="w-8 h-8 rounded-full bg-black/60 hover:bg-studio-red border border-zinc-800 hover:border-studio-red text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm active:scale-95"
               >
-                <Play className="w-3.5 h-3.5 fill-current text-white/90" />
-                <span>Découvrir nos réalisations</span>
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
+        </div>
 
-          {/* =========================================================================
-              BOTTOM: HORIZONTAL EDITORIAL IMAGE GALLERY STRIP
-              - 5 distinct TRA atmospheres (no duplicates)
-              - Desktop: horizontal grid of preview cards
-              - Mobile: smooth horizontal scroll (never vertical stack)
-              - Interactive: click any card to preview full-screen in hero backdrop
-             ========================================================================= */}
-          <div className="relative z-10 pt-10 sm:pt-12">
-            {/* Gallery Label with subtle pulse */}
-            <div className="flex items-center justify-between mb-3 px-1">
-              <span className="font-sans text-[11px] sm:text-xs font-bold tracking-widest text-zinc-400 uppercase flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-[#B00000]" />
-                <span>Nos environnements de tournage</span>
-              </span>
-              <span className="hidden sm:inline font-sans text-[11px] text-zinc-400 tracking-wide">
-                Cliquez pour prévisualiser l'atmosphère
-              </span>
-            </div>
+        {/* The Square Carousel Strip: All items exactly SQUARE with equal dimensions */}
+        <div 
+          ref={carouselRef}
+          className="flex items-center gap-3 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory py-2"
+        >
+          {TRA_STUDIO_PHOTOS.map((photo, idx) => {
+            const isActive = idx === currentIndex;
+            return (
+              <button
+                key={photo.id}
+                type="button"
+                onClick={() => setCurrentIndex(idx)}
+                aria-label={`Afficher ${photo.title}`}
+                className={`group relative shrink-0 aspect-square w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 xl:w-44 xl:h-44 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-500 snap-center cursor-pointer select-none bg-zinc-950 text-left ${
+                  isActive
+                    ? 'ring-2 ring-studio-red ring-offset-2 ring-offset-[#0A0A0A] scale-[1.03] shadow-2xl shadow-studio-red/40 z-10'
+                    : 'border border-zinc-800/80 hover:border-zinc-500 opacity-65 hover:opacity-100 hover:scale-[1.02]'
+                }`}
+              >
+                {/* Square Image */}
+                <img
+                  src={photo.image}
+                  alt={photo.title}
+                  className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-110 filter brightness-[0.85] group-hover:brightness-100"
+                />
 
-            {/* The Horizontal Gallery Strip */}
-            <div className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-3 sm:gap-4 pb-2 md:grid md:grid-cols-5 md:overflow-visible">
-              {GALLERY_ATMOSPHERES.map((item) => {
-                const isSelected = activeId === item.id;
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => handleAtmosphereClick(item)}
-                    className={`relative h-28 sm:h-32 lg:h-36 rounded-xl sm:rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 bg-zinc-950 shrink-0 w-[230px] sm:w-[260px] md:w-auto snap-start select-none ${
-                      isSelected
-                        ? 'ring-2 ring-[#B00000] ring-offset-2 ring-offset-[#0A0A0A] scale-[1.02] shadow-xl shadow-[#B00000]/20'
-                        : 'border border-zinc-800/80 hover:border-zinc-500/80 opacity-85 hover:opacity-100 hover:scale-[1.02]'
-                    }`}
-                  >
-                    {/* Background image */}
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-110 filter brightness-[0.80] group-hover:brightness-95"
-                    />
+                {/* Subtle base vignette for title readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-85 group-hover:opacity-40 transition-opacity" />
 
-                    {/* Gradient Overlay for Clean Readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent group-hover:from-black/80 transition-colors duration-300" />
-
-                    {/* Bottom Labeling */}
-                    <div className="absolute inset-x-0 bottom-0 p-3 sm:p-3.5 flex flex-col justify-end space-y-0.5">
-                      <span className="font-sans text-[10px] font-bold tracking-widest text-[#B00000] uppercase">
-                        {item.category}
-                      </span>
-                      <h4 className="font-sans text-xs sm:text-sm font-bold text-white tracking-tight leading-tight line-clamp-1">
-                        {item.title}
-                      </h4>
-                    </div>
-
-                    {/* Active Indicator Badge */}
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-[#B00000] text-[9px] font-bold uppercase tracking-wider text-white shadow-md">
-                        Actif
-                      </div>
-                    )}
+                {/* Active Indicator Dot */}
+                {isActive && (
+                  <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-studio-red text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-white shadow-md">
+                    Actif
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                )}
 
+                {/* Clean Label at the bottom of the square */}
+                <div className="absolute inset-x-0 bottom-0 p-2 sm:p-2.5">
+                  <p className="font-sans text-[9px] sm:text-[10px] font-bold tracking-wider text-white uppercase truncate drop-shadow">
+                    {photo.title}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>
