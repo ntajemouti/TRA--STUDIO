@@ -20,11 +20,6 @@ export const StudioSpacesSection: React.FC<StudioSpacesSectionProps> = ({
     }
   };
 
-  const handleScrollToReels = () => {
-    const el = document.getElementById('realisations') || document.getElementById('reels');
-    el?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <section
       id="univers"
@@ -41,58 +36,30 @@ export const StudioSpacesSection: React.FC<StudioSpacesSectionProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-14 2xl:gap-16 items-center">
           
           {/* =========================================================================
-              LEFT COLUMN: REFINED EDITORIAL PRESENTATION (Clear, Minimalist & Meaningful)
+              LEFT COLUMN: REFINED EDITORIAL PRESENTATION (Simple, Clear & Minimalist)
              ========================================================================= */}
-          <div className="lg:col-span-5 xl:col-span-4 space-y-6 text-left">
+          <div className="lg:col-span-5 xl:col-span-4 space-y-5 text-left">
             
-            {/* 1. Uppercase Eyebrow Label */}
-            <ScrollReveal animation="fade-down" duration={600}>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-[11px] font-bold tracking-[0.22em] text-zinc-300 uppercase shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-studio-red animate-pulse" />
-                <span>ESPACES DE TOURNAGE & PODCAST</span>
-              </div>
-            </ScrollReveal>
-
-            {/* 2. Headline */}
-            <ScrollReveal animation="fade-up" delay={80} duration={700}>
-              <h2 className="text-3xl sm:text-4xl xl:text-5xl 2xl:text-6xl font-black uppercase tracking-tight text-white leading-[1.02]">
+            {/* 1. Headline (Single Line, High-impact Editorial Typography) */}
+            <ScrollReveal animation="fade-up" delay={60} duration={650}>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.4rem] xl:text-[2.75rem] font-black uppercase tracking-tight text-white leading-tight">
                 Un espace.{' '}
-                <span className="block text-studio-red">
+                <span className="text-studio-red">
                   Mille possibilités.
                 </span>
               </h2>
             </ScrollReveal>
 
-            {/* 3. Meaningful, Clear Narrative */}
-            <ScrollReveal animation="fade-up" delay={140} duration={700}>
+            {/* 2. Simple, Clear Narrative Paragraph */}
+            <ScrollReveal animation="fade-up" delay={120} duration={700}>
               <p className="text-sm sm:text-base text-zinc-300/90 leading-relaxed font-normal">
                 À Témara, <strong>TRA Studio</strong> met à votre disposition des décors et plateaux immersifs pensés pour vos podcasts, interviews d’experts et formats vidéo réseaux sociaux. Un cadre insonorisé et prêt à tourner avec micros Shure broadcast, caméras 4K et éclairages cinéma calibrés.
               </p>
             </ScrollReveal>
 
-            {/* 4. Minimalist Technical Metrics */}
-            <ScrollReveal animation="fade-up" delay={190} duration={650}>
-              <div className="pt-3 pb-1 flex items-center gap-6 sm:gap-8 border-t border-zinc-900 text-xs text-left">
-                <div>
-                  <span className="block font-black text-white text-base sm:text-lg font-mono">4K</span>
-                  <span className="text-zinc-500 text-[11px] uppercase tracking-wider">Multicam Broadcast</span>
-                </div>
-                <div className="w-px h-8 bg-zinc-800/80" />
-                <div>
-                  <span className="block font-black text-white text-base sm:text-lg font-mono">Shure</span>
-                  <span className="text-zinc-500 text-[11px] uppercase tracking-wider">Micros SM7B</span>
-                </div>
-                <div className="w-px h-8 bg-zinc-800/80" />
-                <div>
-                  <span className="block font-black text-studio-red text-base sm:text-lg font-mono">SSD</span>
-                  <span className="text-zinc-500 text-[11px] uppercase tracking-wider">Rushs Immédiats</span>
-                </div>
-              </div>
-            </ScrollReveal>
-
-            {/* 5. CTAs */}
-            <ScrollReveal animation="fade-up" delay={240} duration={600}>
-              <div className="pt-2 flex flex-wrap items-center gap-4">
+            {/* 3. Single Refined CTA */}
+            <ScrollReveal animation="fade-up" delay={180} duration={600}>
+              <div className="pt-2">
                 <button
                   type="button"
                   onClick={handleScrollToCatalogue}
@@ -100,15 +67,6 @@ export const StudioSpacesSection: React.FC<StudioSpacesSectionProps> = ({
                 >
                   <span>Découvrir nos formules</span>
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleScrollToReels}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer py-2 px-1"
-                >
-                  <span>Voir nos réalisations</span>
-                  <ArrowRight className="w-3 h-3 text-studio-red" />
                 </button>
               </div>
             </ScrollReveal>
