@@ -1,5 +1,5 @@
 import React from 'react';
-import { Instagram, Heart, MessageCircle, ExternalLink } from 'lucide-react';
+import { Instagram, ExternalLink } from 'lucide-react';
 import { StudioSettings } from '../../types';
 import { ScrollReveal } from '../ui/ScrollReveal';
 
@@ -7,62 +7,52 @@ interface InstagramSectionProps {
   settings?: StudioSettings;
 }
 
-const INSTAGRAM_POSTS = [
+interface InstagramPost {
+  id: string;
+  image: string;
+  alt: string;
+}
+
+const INSTAGRAM_POSTS: InstagramPost[] = [
   {
     id: 'post-1',
     image: '/instagram/tra-insta-1.jpg',
-    alt: 'TRA Studio plateau podcast rouge à Témara',
-    likes: '842',
-    comments: '46',
+    alt: 'TRA Studio décor vintage studio podcast',
   },
   {
     id: 'post-2',
     image: '/instagram/tra-insta-2.jpg',
-    alt: 'TRA Studio session tournage setup bleu et régie',
-    likes: '694',
-    comments: '38',
+    alt: 'TRA Studio session tournage interview',
   },
   {
     id: 'post-3',
     image: '/instagram/tra-insta-3.jpg',
     alt: 'TRA Studio retour caméra 4K et réalisation',
-    likes: '528',
-    comments: '29',
   },
   {
     id: 'post-4',
     image: '/instagram/tra-insta-4.jpg',
-    alt: 'TRA Studio shooting mode et commercial',
-    likes: '715',
-    comments: '51',
+    alt: 'TRA Studio shooting plateau frontal',
   },
   {
     id: 'post-5',
     image: '/instagram/tra-insta-5.jpg',
-    alt: 'TRA Studio interview et talk-show podcast',
-    likes: '931',
-    comments: '64',
+    alt: 'TRA Studio plateau podcast perspective',
   },
   {
     id: 'post-6',
     image: '/instagram/tra-insta-6.jpg',
-    alt: 'TRA Studio campagne visuelle Sony Alpha 7',
-    likes: '1.2K',
-    comments: '88',
+    alt: 'TRA Studio interview et talk-show podcast',
   },
   {
     id: 'post-7',
     image: '/instagram/tra-insta-7.jpg',
-    alt: 'TRA Studio décor vintage studio podcast officiel',
-    likes: '1.1K',
-    comments: '72',
+    alt: 'TRA Studio production audiovisuelle broadcast',
   },
   {
     id: 'post-8',
     image: '/instagram/tra-insta-8.jpg',
-    alt: 'TRA Studio interview broadcast et multicam',
-    likes: '1.4K',
-    comments: '95',
+    alt: 'TRA Studio néon officiel et plateau moderne',
   },
 ];
 
@@ -106,7 +96,7 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
             8 LATEST INSTAGRAM POSTS:
             - 4 columns x 2 rows on desktop (large cards, spans corner to corner)
             - 2 columns on mobile
-            - Fits cleanly in the client's field of view
+            - Pure visual post with transparent white Instagram logo on hover
            ========================================================================= */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 w-full">
           {INSTAGRAM_POSTS.map((post, idx) => (
@@ -118,7 +108,7 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') handlePostClick();
                 }}
-                className="group relative aspect-square w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800/90 hover:border-studio-red/70 shadow-xl hover:shadow-2xl hover:shadow-studio-red/25 transition-all duration-300 cursor-pointer"
+                className="group relative aspect-square w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800/90 hover:border-white/40 shadow-xl hover:shadow-2xl hover:shadow-studio-red/20 transition-all duration-300 cursor-pointer"
                 title="Voir cette publication sur le compte Instagram de TRA Studio"
               >
                 {/* Pure Authentic Photo from @tra__studio */}
@@ -129,26 +119,11 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
                   loading="lazy"
                 />
 
-                {/* Subtle Interactive Instagram Hover State */}
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2.5 text-white p-3 select-none">
-                  <div className="w-10 h-10 rounded-full bg-studio-red/30 border border-studio-red/50 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                    <Instagram className="w-5 h-5 text-white" />
+                {/* Transparent White Instagram Logo on hover with photo still visible behind */}
+                <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center select-none pointer-events-none">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/50 flex items-center justify-center text-white shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:bg-white/30">
+                    <Instagram className="w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-md stroke-[1.8]" />
                   </div>
-                  
-                  <div className="flex items-center gap-3 text-xs sm:text-sm font-bold text-white">
-                    <span className="flex items-center gap-1.5">
-                      <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-studio-red fill-studio-red" />
-                      {post.likes}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                      {post.comments}
-                    </span>
-                  </div>
-
-                  <span className="text-[10px] sm:text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1">
-                    Instagram <ExternalLink className="w-3 h-3 text-studio-red" />
-                  </span>
                 </div>
               </div>
             </ScrollReveal>
