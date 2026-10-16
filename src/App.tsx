@@ -5,7 +5,7 @@ import { Header } from './components/ui/Header';
 import { Footer } from './components/ui/Footer';
 import { ScrollProgressBar } from './components/ui/ScrollProgressBar';
 import { HeroSection } from './components/showcase/HeroSection';
-import { StudioIntroSection } from './components/showcase/StudioIntroSection';
+import { StudioSpacesSection } from './components/showcase/StudioSpacesSection';
 import { Step2Package } from './components/client/Step2Package';
 import { ClientReelsSection } from './components/showcase/ClientReelsSection';
 import { PortfolioSection } from './components/showcase/PortfolioSection';
@@ -67,9 +67,9 @@ export function App() {
             />
           </div>
 
-          {/* 2. NEW TRA STUDIO INTRODUCTION SECTION (Positioned immediately before Services) */}
-          <StudioIntroSection
-            onExplorePortfolio={() => handleScrollTo('realisations')}
+          {/* 2. “Our Studio Spaces” Section (Positioned immediately before Services) */}
+          <StudioSpacesSection
+            onExploreSpaces={() => handleScrollTo('services')}
             onExploreServices={() => handleScrollTo('services')}
           />
 
