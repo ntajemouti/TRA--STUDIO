@@ -71,16 +71,16 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
                   href={waUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:text-emerald-400 transition-colors"
+                  className="flex items-center gap-2 hover:text-studio-red transition-colors"
                 >
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                  <MessageCircle className="w-3.5 h-3.5 text-studio-red" />
                   <span>WhatsApp direct</span>
                 </a>
               </li>
               <li>
                 <a
                   href={`tel:${phone}`}
-                  className="flex items-center gap-2 hover:text-white transition-colors"
+                  className="flex items-center gap-2 hover:text-studio-red transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5 text-studio-red" />
                   <span>{phone}</span>
@@ -89,9 +89,9 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
               <li>
                 <a
                   href={`mailto:${email}`}
-                  className="flex items-center gap-2 hover:text-white transition-colors"
+                  className="flex items-center gap-2 hover:text-studio-red transition-colors"
                 >
-                  <Mail className="w-3.5 h-3.5 text-blue-400" />
+                  <Mail className="w-3.5 h-3.5 text-studio-red" />
                   <span className="truncate">{email}</span>
                 </a>
               </li>
@@ -109,9 +109,9 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
                   href={igUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:text-pink-400 transition-colors"
+                  className="flex items-center gap-2 hover:text-studio-red transition-colors"
                 >
-                  <Instagram className="w-3.5 h-3.5 text-pink-400" />
+                  <Instagram className="w-3.5 h-3.5 text-studio-red" />
                   <span>@{igHandle}</span>
                 </a>
               </li>

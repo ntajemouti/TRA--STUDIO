@@ -140,7 +140,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   className={`group relative shrink-0 aspect-[16/10] w-36 sm:w-44 md:w-48 lg:w-52 xl:w-56 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 snap-start cursor-pointer select-none bg-zinc-950 ${
                     isActive
                       ? 'ring-2 ring-[#8B0000] ring-offset-2 ring-offset-black scale-[1.03] shadow-xl shadow-[#8B0000]/50'
-                      : 'border border-zinc-800/80 hover:border-zinc-500 opacity-80 hover:opacity-100 hover:scale-[1.02]'
+                      : 'border border-zinc-800/80 hover:border-studio-red/70 hover:shadow-lg hover:shadow-studio-red/30 opacity-80 hover:opacity-100 hover:scale-[1.02]'
                   }`}
                 >
                   <img

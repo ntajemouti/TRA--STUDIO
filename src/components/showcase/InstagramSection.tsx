@@ -63,7 +63,7 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
   return (
     <section id="instagram" className="py-14 sm:py-20 bg-studio-bg text-white scroll-mt-20 relative overflow-hidden">
       {/* Ambient decorative glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-purple-600/10 via-pink-600/10 to-transparent rounded-full blur-[140px] pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-studio-red/10 rounded-full blur-[140px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 relative z-10">
         {/* =========================================================================
@@ -72,14 +72,14 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
         <ScrollReveal animation="fade-down">
           <div className="text-center max-w-3xl mx-auto space-y-3.5">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-bold text-zinc-300 shadow-md">
-              <Instagram className="w-4 h-4 text-pink-500" />
+              <Instagram className="w-4 h-4 text-studio-red" />
               <span className="text-white font-black tracking-wider uppercase">COMMUNAUTÉ & COULISSES</span>
               <span className="text-zinc-600">•</span>
-              <span className="text-pink-400">@{handle}</span>
+              <span className="text-studio-red font-semibold">@{handle}</span>
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight">
-              Suivez-nous sur <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-amber-400 bg-clip-text text-transparent">Instagram</span>
+              Suivez-nous sur <span className="text-studio-red">Instagram</span>
             </h2>
 
             <p className="text-sm sm:text-base text-zinc-400 font-normal leading-relaxed">
@@ -101,7 +101,7 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') handlePostClick();
                 }}
-                className="group relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800/90 hover:border-pink-500/60 shadow-xl hover:shadow-2xl hover:shadow-pink-500/15 transition-all duration-300 cursor-pointer"
+                className="group relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800/90 hover:border-studio-red/60 shadow-xl hover:shadow-2xl hover:shadow-studio-red/20 transition-all duration-300 cursor-pointer"
                 title="Voir cette publication sur le compte Instagram de TRA Studio"
               >
                 {/* Pure Authentic Photo from @tra__studio — No Text Overlay */}
@@ -114,13 +114,13 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
 
                 {/* Subtle Interactive Instagram Hover State */}
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2.5 text-white p-3 select-none">
-                  <div className="w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                  <div className="w-9 h-9 rounded-full bg-studio-red/30 border border-studio-red/50 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
                     <Instagram className="w-4 h-4 text-white" />
                   </div>
                   
                   <div className="flex items-center gap-3 text-xs font-bold text-white">
                     <span className="flex items-center gap-1">
-                      <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
+                      <Heart className="w-3.5 h-3.5 text-studio-red fill-studio-red" />
                       {post.likes}
                     </span>
                     <span className="flex items-center gap-1">
@@ -130,7 +130,7 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
                   </div>
 
                   <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1">
-                    Instagram <ExternalLink className="w-2.5 h-2.5 text-pink-400" />
+                    Instagram <ExternalLink className="w-2.5 h-2.5 text-studio-red" />
                   </span>
                 </div>
               </div>
@@ -147,7 +147,7 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
               href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:from-purple-500 hover:via-pink-500 hover:to-rose-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-xl shadow-pink-600/20 active:scale-95 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-2xl bg-studio-red hover:bg-studio-redHover text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-xl shadow-studio-red/30 active:scale-95 transition-all cursor-pointer"
             >
               <Instagram className="w-4 h-4" />
               <span>Suivre @{handle} sur Instagram</span>

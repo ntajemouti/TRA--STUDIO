@@ -69,9 +69,9 @@ export const ExperienceSection: React.FC = () => {
             const IconComponent = item.icon;
             return (
               <ScrollReveal key={idx} animation="fade-up" delay={idx * 80} duration={600} className="h-full">
-                <div className="bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-studio-red/40 rounded-2xl p-6 flex flex-col justify-between space-y-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-studio-red/10 text-left cursor-default h-full">
+                <div className="bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-studio-red/50 rounded-2xl p-6 flex flex-col justify-between space-y-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-studio-red/20 text-left cursor-default h-full group">
                   <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-studio-red shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-studio-red/15 border border-studio-red/30 flex items-center justify-center text-studio-red shadow-sm group-hover:scale-105 transition-transform">
                       <IconComponent className="w-5 h-5" />
                     </div>
 

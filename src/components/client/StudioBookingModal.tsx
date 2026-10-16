@@ -539,7 +539,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
               <button
                 type="button"
                 onClick={handleSendOnWhatsApp}
-                className="w-full h-13 sm:h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-emerald-600/30 transition-all cursor-pointer"
+                className="w-full h-13 sm:h-14 rounded-2xl bg-studio-red hover:bg-studio-redHover active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-studio-red/30 transition-all cursor-pointer"
               >
                 <WhatsAppIcon className="w-5 h-5 fill-current" />
                 <span>Envoyer ma demande sur WhatsApp</span>
@@ -563,7 +563,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
            ========================================================================= */}
         {step === 'sent' && (
           <div className="space-y-6 py-4 text-center animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto">
+            <div className="w-16 h-16 rounded-full bg-studio-red/15 border border-studio-red/40 text-studio-red flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-9 h-9" />
             </div>
 
@@ -582,7 +582,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
                 href={generatedWhatsAppUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full h-13 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-emerald-600/30 transition-all cursor-pointer"
+                className="w-full h-13 rounded-2xl bg-studio-red hover:bg-studio-redHover text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-studio-red/30 transition-all cursor-pointer"
               >
                 <WhatsAppIcon className="w-5 h-5 fill-current" />
                 <span>Ouvrir à nouveau WhatsApp</span>

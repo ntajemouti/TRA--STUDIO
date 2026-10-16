@@ -156,7 +156,7 @@ export const Header: React.FC<HeaderProps> = ({ settings, onStartBooking }) => {
           <button
             type="button"
             onClick={handleBookingClick}
-            className="flex items-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-full border-2 border-studio-red text-studio-red hover:bg-studio-red hover:text-white font-semibold text-sm transition-all duration-200 cursor-pointer shadow-lg shadow-studio-red/20 hover:shadow-studio-red/40 hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 px-5 sm:px-6 py-2.5 rounded-full bg-studio-red hover:bg-studio-redHover text-white font-bold text-sm transition-all duration-200 cursor-pointer shadow-xl shadow-studio-red/40 hover:scale-105 active:scale-95 border border-studio-redHover/40"
           >
             <span>Je réserve</span>
             <Calendar className="w-4 h-4 ml-0.5" />
@@ -167,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({ settings, onStartBooking }) => {
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Menu de navigation"
-            className="lg:hidden relative w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center gap-1.5 focus:outline-none transition-all duration-300 hover:border-zinc-700 active:scale-95 cursor-pointer ml-1"
+            className="lg:hidden relative w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center gap-1.5 focus:outline-none transition-all duration-300 hover:border-studio-red active:scale-95 cursor-pointer ml-1"
             title="Menu"
           >
             <span
@@ -218,7 +218,7 @@ export const Header: React.FC<HeaderProps> = ({ settings, onStartBooking }) => {
               rel="noopener noreferrer"
               aria-label="WhatsApp"
               title="Contacter sur WhatsApp"
-              className="w-12 h-12 rounded-full bg-zinc-900/90 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-950/30 transition-all duration-200 active:scale-95 shadow-md"
+              className="w-12 h-12 rounded-full bg-zinc-900/90 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-studio-red hover:border-studio-red/60 hover:bg-studio-red/10 transition-all duration-200 active:scale-95 shadow-md"
             >
               <WhatsAppIcon className="w-5 h-5 fill-current" />
             </a>
@@ -229,7 +229,7 @@ export const Header: React.FC<HeaderProps> = ({ settings, onStartBooking }) => {
               rel="noopener noreferrer"
               aria-label="Instagram"
               title="Page Instagram @tra__studio"
-              className="w-12 h-12 rounded-full bg-zinc-900/90 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-pink-400 hover:border-pink-500/50 hover:bg-pink-950/30 transition-all duration-200 active:scale-95 shadow-md"
+              className="w-12 h-12 rounded-full bg-zinc-900/90 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-studio-red hover:border-studio-red/60 hover:bg-studio-red/10 transition-all duration-200 active:scale-95 shadow-md"
             >
               <Instagram className="w-5 h-5" />
             </a>

@@ -227,7 +227,7 @@ export const Step2Package: React.FC<Step2PackageProps> = ({
             duration={650}
             className="h-full"
           >
-            <div className="group relative rounded-3xl bg-zinc-950 border border-zinc-800/90 hover:border-zinc-700 p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl h-full">
+            <div className="group relative rounded-3xl bg-zinc-950 border border-zinc-800/90 hover:border-studio-red/50 p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-studio-red/15 h-full">
               
               <div className="space-y-4">
                 {/* Header of Card */}
@@ -271,7 +271,7 @@ export const Step2Package: React.FC<Step2PackageProps> = ({
                 <div className="space-y-2 text-xs text-zinc-300 pt-1">
                   {pkg.features.slice(0, 4).map((feat, fIdx) => (
                     <div key={fIdx} className="flex items-start gap-2">
-                      <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <Check className="w-3.5 h-3.5 text-studio-red shrink-0 mt-0.5" />
                       <span className="line-clamp-1">{feat}</span>
                     </div>
                   ))}

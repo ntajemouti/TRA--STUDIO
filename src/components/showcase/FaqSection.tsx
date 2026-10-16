@@ -41,7 +41,7 @@ export const FaqSection: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
         <ScrollReveal animation="fade-down" duration={600}>
           <div className="text-center space-y-3">
-            <span className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-zinc-400">
+            <span className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-studio-red">
               Une question ? On y répond ici.
             </span>
             <h2 className="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight">
@@ -58,7 +58,9 @@ export const FaqSection: React.FC = () => {
             const isOpen = openIdx === idx;
             return (
               <ScrollReveal key={idx} animation="fade-up" delay={idx * 60} duration={500}>
-                <div className="bg-studio-card border border-studio-border rounded-2xl overflow-hidden transition-all duration-200">
+                <div className={`bg-studio-card rounded-2xl overflow-hidden transition-all duration-200 border ${
+                  isOpen ? 'border-studio-red/50 shadow-lg shadow-studio-red/10' : 'border-studio-border hover:border-studio-red/30'
+                }`}>
                   <button
                     type="button"
                     onClick={() => toggle(idx)}

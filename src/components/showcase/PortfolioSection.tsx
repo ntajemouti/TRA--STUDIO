@@ -201,7 +201,7 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
             <ScrollReveal key={slot.id} animation="fade-up" delay={idx * 70}>
               <div
                 onClick={() => setActiveSlot(slot)}
-                className="group relative rounded-2xl bg-zinc-900/70 border border-zinc-800/90 hover:border-zinc-700 overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1 text-left h-full"
+                className="group relative rounded-2xl bg-zinc-900/70 border border-zinc-800/90 hover:border-studio-red/50 overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-studio-red/15 transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1 text-left h-full"
               >
                 {/* Card Media Frame / Atmospheric Placeholder */}
                 <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-5 flex flex-col justify-between border-b border-zinc-800/70 overflow-hidden">

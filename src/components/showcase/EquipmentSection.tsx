@@ -80,7 +80,7 @@ export const EquipmentSection: React.FC = () => {
             const IconComponent = item.icon;
             return (
               <ScrollReveal key={idx} animation="fade-up" delay={idx * 80}>
-                <div className="group relative bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-studio-red/40 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-studio-red/10 flex flex-col justify-between text-left h-full">
+                <div className="group relative bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-studio-red/50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-studio-red/20 flex flex-col justify-between text-left h-full">
                   {/* Visual Header with Authentic Image */}
                   <div className="relative h-44 w-full overflow-hidden bg-zinc-950">
                     <img
@@ -91,13 +91,13 @@ export const EquipmentSection: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/30 to-transparent"></div>
                     
                     <div className="absolute top-3 right-3 z-10">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-zinc-950/90 backdrop-blur-md text-white border border-zinc-700 shadow-md">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-zinc-950/90 backdrop-blur-md text-zinc-200 border border-studio-red/40 shadow-md">
                         {item.tag}
                       </span>
                     </div>
 
                     <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-zinc-950/90 border border-zinc-800 flex items-center justify-center text-studio-red shadow-md">
+                      <div className="w-8 h-8 rounded-xl bg-studio-red/20 border border-studio-red/40 flex items-center justify-center text-studio-red shadow-md">
                         <IconComponent className="w-4 h-4" />
                       </div>
                       <span className="text-[11px] font-black text-zinc-200 uppercase tracking-wider">

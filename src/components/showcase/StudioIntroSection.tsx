@@ -139,7 +139,7 @@ export const StudioIntroSection: React.FC<StudioIntroSectionProps> = ({
             
             {/* Supporting Visual 1: Salon Prestige Dark */}
             <ScrollReveal animation="fade-left" delay={150} duration={750} className="h-full">
-              <div className="group relative rounded-3xl overflow-hidden border border-zinc-800/80 bg-zinc-950 aspect-[16/10] sm:aspect-[16/9] lg:aspect-auto lg:h-full w-full shadow-xl flex flex-col justify-end p-5 sm:p-6 min-h-[200px]">
+              <div className="group relative rounded-3xl overflow-hidden border border-zinc-800/80 hover:border-studio-red/50 bg-zinc-950 aspect-[16/10] sm:aspect-[16/9] lg:aspect-auto lg:h-full w-full shadow-xl flex flex-col justify-end p-5 sm:p-6 min-h-[200px] transition-all duration-300">
                 <div className="absolute inset-0 z-0 overflow-hidden">
                   <img
                     src="/images/studios/studio-prestige-dark.jpg"
@@ -150,7 +150,7 @@ export const StudioIntroSection: React.FC<StudioIntroSectionProps> = ({
                 </div>
 
                 <div className="relative z-10 text-left space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-studio-red">
                     Décor 01 • Talk-Show
                   </span>
                   <h4 className="text-base sm:text-lg font-bold text-white uppercase tracking-tight">
@@ -165,7 +165,7 @@ export const StudioIntroSection: React.FC<StudioIntroSectionProps> = ({
 
             {/* Supporting Visual 2: Table Ronde Broadcast */}
             <ScrollReveal animation="fade-left" delay={200} duration={750} className="h-full">
-              <div className="group relative rounded-3xl overflow-hidden border border-zinc-800/80 bg-zinc-950 aspect-[16/10] sm:aspect-[16/9] lg:aspect-auto lg:h-full w-full shadow-xl flex flex-col justify-end p-5 sm:p-6 min-h-[200px]">
+              <div className="group relative rounded-3xl overflow-hidden border border-zinc-800/80 hover:border-studio-red/50 bg-zinc-950 aspect-[16/10] sm:aspect-[16/9] lg:aspect-auto lg:h-full w-full shadow-xl flex flex-col justify-end p-5 sm:p-6 min-h-[200px] transition-all duration-300">
                 <div className="absolute inset-0 z-0 overflow-hidden">
                   <img
                     src="/images/studios/studio-roundtable-broadcast.jpg"
@@ -176,7 +176,7 @@ export const StudioIntroSection: React.FC<StudioIntroSectionProps> = ({
                 </div>
 
                 <div className="relative z-10 text-left space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-studio-red">
                     Décor 02 • Débat & Équipe
                   </span>
                   <h4 className="text-base sm:text-lg font-bold text-white uppercase tracking-tight">
