@@ -174,34 +174,6 @@ export const Step2Package: React.FC<Step2PackageProps> = ({
         })}
       </div>
 
-      {/* =========================================================================
-          SUR-MESURE QUOTE BANNER (Volume / Projets Spécifiques)
-         ========================================================================= */}
-      <ScrollReveal animation="fade-up" delay={150} duration={650} className="pt-4 max-w-7xl mx-auto">
-        <div className="bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl text-left">
-          <div className="space-y-1.5 max-w-xl">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#8B0000]">
-              PROJET SPÉCIFIQUE OU VOLUME MENSUEL
-            </span>
-            <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
-              Vous avez un projet sur-mesure ou une série d'épisodes ?
-            </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Pour les tournages longue durée, les séries récurrentes de podcasts, les formats vidéo spécifiques ou les productions corporate d'entreprise, nous établissons un devis personnalisé adapté à vos besoins.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onSelectService('Projet Sur-Mesure / Demande de Devis')}
-            className="shrink-0 px-6 py-3.5 rounded-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-[#8B0000]/50 text-white font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl active:scale-95 transition-all cursor-pointer"
-          >
-            <span>Demander un devis</span>
-            <ArrowRight className="w-4 h-4 text-[#8B0000]" />
-          </button>
-        </div>
-      </ScrollReveal>
-
     </div>
   );
 };

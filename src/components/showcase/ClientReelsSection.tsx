@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, VolumeX, ChevronLeft, ChevronRight, Maximize2, X, Play } from 'lucide-react';
 import { ScrollReveal } from '../ui/ScrollReveal';
 
@@ -62,12 +62,53 @@ interface ClientReelsSectionProps {
 }
 
 export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartBooking }) => {
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
   const [activeUnmutedId, setActiveUnmutedId] = useState<string | null>(null);
   const [pausedMap, setPausedMap] = useState<Record<string, boolean>>({});
   const [modalReel, setModalReel] = useState<ClientReelItem | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+
+  // Auto-advance carousel every 10 seconds (KOUL 10 seconds ythrko automatic)
+  useEffect(() => {
+    if (modalReel || isHovered) return;
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % CLIENT_REELS.length);
+    }, 10000);
+
+    return () => clearInterval(timer);
+  }, [modalReel, isHovered]);
+
+  // Smooth scroll container to currentIndex
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const container = containerRef.current;
+    const items = container.querySelectorAll<HTMLElement>('.reel-card-item');
+    if (items[currentIndex]) {
+      const target = items[currentIndex];
+      const isMobile = window.innerWidth < 640;
+      if (isMobile) {
+        // On phone, center the single card exactly in viewport
+        const leftPos = target.offsetLeft - (container.clientWidth - target.clientWidth) / 2;
+        container.scrollTo({ left: Math.max(0, leftPos), behavior: 'smooth' });
+      } else {
+        // On PC, align smooth scroll
+        const leftPos = target.offsetLeft - container.offsetLeft;
+        container.scrollTo({ left: Math.max(0, leftPos), behavior: 'smooth' });
+      }
+    }
+  }, [currentIndex]);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + CLIENT_REELS.length) % CLIENT_REELS.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % CLIENT_REELS.length);
+  };
 
   // Toggle Mute on a specific reel
   const handleToggleMute = (reelId: string, e?: React.MouseEvent) => {
@@ -106,18 +147,6 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
     }
   };
 
-  // Scroll controls for big reel carousel
-  const scroll = (direction: 'left' | 'right') => {
-    if (containerRef.current) {
-      const cardWidth = 360;
-      const scrollAmount = direction === 'left' ? -cardWidth * 1.5 : cardWidth * 1.5;
-      containerRef.current.scrollBy({
-        left: scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  };
-
   const handleOpenModal = (reel: ClientReelItem, e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (activeUnmutedId) {
@@ -134,25 +163,20 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
 
   return (
     <section id="reels" className="py-16 sm:py-24 bg-studio-bg text-white scroll-mt-20 relative overflow-hidden">
-      {/* Ambient background glow matching podcasty vibe */}
+      {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-r from-studio-red/10 via-studio-red/15 to-studio-red/10 rounded-full blur-[160px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12 relative z-10">
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12 relative z-10">
+        
         {/* =========================================================================
-            HEADER - PODCASTY STYLE
-            - Eyebrow: DES CONTENUS PRÊTS À IMPRESSIONNER
-            - Title: Des reels et vidéos de nos clients (Pink/Orange Gradient)
-            - Description: Explorez les vidéos produites dans nos studios...
+            HEADER: Title & Paragraph ONLY ("DES CONTENUS PRÊTS À IMPRESSIONNER" removed)
            ========================================================================= */}
         <ScrollReveal animation="fade-down">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="text-[11px] sm:text-xs font-bold tracking-[0.28em] text-zinc-400 uppercase block">
-              DES CONTENUS PRÊTS À IMPRESSIONNER
-            </span>
-
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-              <span className="bg-gradient-to-r from-[#8B0000] via-[#A00000] to-[#8B0000] bg-clip-text text-transparent">
-                Des reels et vidéos de nos clients
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-black tracking-wide uppercase leading-tight">
+              <span className="text-white">Des reels et vidéos </span>
+              <span className="text-[#8B0000] drop-shadow-[0_2px_15px_rgba(139,0,0,0.4)]">
+                de nos clients
               </span>
             </h2>
 
@@ -164,50 +188,62 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
         </ScrollReveal>
 
         {/* =========================================================================
-            REELS CAROUSEL - LARGE FORMAT (kber la form dyal format reel)
-            - Clean pure video with zero text overlays (simple mfihch ktaba)
-            - Extra big and prominent 9:16 vertical cards
+            REELS CAROUSEL:
+            - Desktop: 6 reels visible at once spanning wide from corner to corner ("chadin mn 9nt"), compact format
+            - Mobile: Exactly 1 reel visible at a time
+            - Auto-scrolls every 10 seconds smoothly
            ========================================================================= */}
         <ScrollReveal animation="fade-up">
-          <div className="relative group/carousel">
-            {/* Carousel Navigation Arrows - Always visible & prominent on desktop */}
+          <div
+            className="relative group/carousel"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {/* Carousel Navigation Arrows */}
             <button
               type="button"
-              onClick={() => scroll('left')}
-              className="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/90 border border-zinc-700/80 text-white items-center justify-center shadow-2xl backdrop-blur-md transition-all duration-200 z-30 hover:scale-110 hover:border-studio-red hover:bg-zinc-800 cursor-pointer"
-              aria-label="Défiler vers la gauche"
+              onClick={handlePrev}
+              className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-zinc-900/95 border border-zinc-700/80 text-white items-center justify-center shadow-2xl backdrop-blur-md transition-all duration-200 z-30 hover:scale-110 hover:border-[#8B0000] hover:bg-zinc-800 cursor-pointer"
+              aria-label="Reel précédent"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
 
             <button
               type="button"
-              onClick={() => scroll('right')}
-              className="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-zinc-900/90 border border-zinc-700/80 text-white items-center justify-center shadow-2xl backdrop-blur-md transition-all duration-200 z-30 hover:scale-110 hover:border-studio-red hover:bg-zinc-800 cursor-pointer"
-              aria-label="Défiler vers la droite"
+              onClick={handleNext}
+              className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-zinc-900/95 border border-zinc-700/80 text-white items-center justify-center shadow-2xl backdrop-blur-md transition-all duration-200 z-30 hover:scale-110 hover:border-[#8B0000] hover:bg-zinc-800 cursor-pointer"
+              aria-label="Reel suivant"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5" />
             </button>
 
-            {/* Reel Cards Container - Large format horizontal scrolling with smooth snap */}
+            {/* Reel Cards Container - 6 on desktop, 1 on mobile */}
             <div
               ref={containerRef}
-              className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory py-4 px-2 sm:px-4 no-scrollbar"
+              className="flex items-center gap-3 sm:gap-3.5 overflow-x-auto snap-x snap-mandatory py-4 px-1 sm:px-2 no-scrollbar"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              {CLIENT_REELS.map((reel) => {
+              {CLIENT_REELS.map((reel, idx) => {
                 const isMuted = activeUnmutedId !== reel.id;
                 const isPaused = !!pausedMap[reel.id];
+                const isCurrentOnMobile = currentIndex === idx;
 
                 return (
                   <div
                     key={reel.id}
-                    className="flex-shrink-0 w-[80vw] sm:w-[320px] md:w-[340px] lg:w-[360px] snap-center group relative cursor-pointer select-none"
+                    className="reel-card-item flex-shrink-0 w-[84vw] max-w-[280px] sm:w-[calc((100%-2*14px)/3)] md:w-[calc((100%-3*14px)/4)] lg:w-[calc((100%-5*14px)/6)] snap-center group relative cursor-pointer select-none transition-all duration-300"
                     onClick={() => handleTogglePlay(reel.id)}
                   >
-                    {/* Large 9:16 vertical card with rounded-3xl and deep luxury shadow */}
-                    <div className="relative aspect-[9/16] w-full rounded-[28px] sm:rounded-[32px] overflow-hidden bg-zinc-950 border border-zinc-800/90 shadow-2xl transition-all duration-300 group-hover:border-zinc-500 group-hover:shadow-studio-red/20 group-hover:shadow-2xl">
-                      {/* Authentic Video Playing Seamlessly */}
+                    {/* Compact 9:16 vertical card with refined borders and sleek shadow */}
+                    <div
+                      className={`relative aspect-[9/16] w-full rounded-2xl sm:rounded-[22px] overflow-hidden bg-zinc-950 border shadow-xl transition-all duration-300 ${
+                        isCurrentOnMobile
+                          ? 'border-[#8B0000] sm:border-zinc-800/90 shadow-[#8B0000]/25'
+                          : 'border-zinc-800/90 group-hover:border-zinc-600'
+                      }`}
+                    >
+                      {/* Video Player */}
                       <video
                         ref={(el) => {
                           videoRefs.current[reel.id] = el;
@@ -222,55 +258,70 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
 
-                      {/* Discreet Top Action Controls (Clean, minimal, no cluttering text) */}
-                      <div className="absolute top-4 inset-x-4 flex items-center justify-end gap-2 z-20 pointer-events-auto">
-                        {/* Sound Toggle Button */}
+                      {/* Top Action Controls */}
+                      <div className="absolute top-3 inset-x-3 flex items-center justify-end gap-1.5 z-20 pointer-events-auto">
+                        {/* Sound Toggle */}
                         <button
                           type="button"
                           onClick={(e) => handleToggleMute(reel.id, e)}
-                          className={`w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-200 border cursor-pointer ${
+                          className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-200 border cursor-pointer ${
                             !isMuted
-                              ? 'bg-studio-red text-white border-studio-red shadow-lg shadow-studio-red/40 scale-105'
+                              ? 'bg-[#8B0000] text-white border-[#8B0000] shadow-md shadow-[#8B0000]/40 scale-105'
                               : 'bg-black/60 text-white/90 border-white/20 hover:bg-black/80 hover:text-white'
                           }`}
                           title={isMuted ? 'Activer le son' : 'Couper le son'}
                         >
-                          {!isMuted ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                          {!isMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                         </button>
 
-                        {/* Fullscreen Expand Button */}
+                        {/* Fullscreen Expand */}
                         <button
                           type="button"
                           onClick={(e) => handleOpenModal(reel, e)}
-                          className="w-9 h-9 rounded-full flex items-center justify-center bg-black/60 backdrop-blur-md text-white/90 border border-white/20 hover:bg-black/80 hover:text-white transition-all duration-200 cursor-pointer"
+                          className="w-8 h-8 rounded-full flex items-center justify-center bg-black/60 backdrop-blur-md text-white/90 border border-white/20 hover:bg-black/80 hover:text-white transition-all duration-200 cursor-pointer"
                           title="Agrandir la vidéo"
                         >
-                          <Maximize2 className="w-4 h-4" />
+                          <Maximize2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
-                      {/* Pause Indicator overlay (only appears when video is paused) */}
+                      {/* Pause Indicator overlay */}
                       {isPaused && (
                         <div className="absolute inset-0 bg-black/35 backdrop-blur-[2px] flex items-center justify-center z-15">
-                          <div className="w-14 h-14 rounded-full bg-studio-red/90 text-white flex items-center justify-center shadow-xl shadow-studio-red/40 pl-0.5 animate-in zoom-in-75 duration-200">
-                            <Play className="w-7 h-7 fill-white" />
+                          <div className="w-12 h-12 rounded-full bg-[#8B0000]/90 text-white flex items-center justify-center shadow-xl shadow-[#8B0000]/40 pl-0.5 animate-in zoom-in-75 duration-200">
+                            <Play className="w-6 h-6 fill-white" />
                           </div>
                         </div>
                       )}
 
                       {/* Subtle hover border glow */}
-                      <div className="absolute inset-0 rounded-[28px] sm:rounded-[32px] border-2 border-transparent group-hover:border-studio-red/40 transition-colors pointer-events-none" />
+                      <div className="absolute inset-0 rounded-2xl sm:rounded-[22px] border border-transparent group-hover:border-[#8B0000]/40 transition-colors pointer-events-none" />
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Mobile swipe and drag hint */}
-            <div className="flex items-center justify-center gap-2 mt-4 text-zinc-500 text-xs font-medium">
-              <span>Glissez horizontalement pour découvrir tous les reels</span>
-              <span className="text-zinc-600">•</span>
-              <span className="text-zinc-400">9 vidéos uniques</span>
+            {/* Pagination / 10s auto-advancing progress pills */}
+            <div className="flex items-center justify-center gap-1.5 pt-3">
+              {CLIENT_REELS.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setCurrentIndex(i)}
+                  aria-label={`Aller au reel ${i + 1}`}
+                  className={`transition-all duration-300 rounded-full cursor-pointer ${
+                    currentIndex === i
+                      ? 'w-6 h-1.5 bg-[#8B0000] shadow-sm shadow-[#8B0000]/50'
+                      : 'w-1.5 h-1.5 bg-zinc-700 hover:bg-zinc-500'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Hint for mobile */}
+            <div className="sm:hidden flex items-center justify-center gap-2 mt-2 text-zinc-500 text-[11px] font-medium">
+              <span>Reel {currentIndex + 1} sur {CLIENT_REELS.length} • Défilement automatique toutes les 10s</span>
             </div>
           </div>
         </ScrollReveal>
@@ -295,11 +346,11 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
                 if (onStartBooking) {
                   onStartBooking();
                 } else {
-                  const el = document.getElementById('catalogue');
+                  const el = document.getElementById('services') || document.getElementById('catalogue');
                   el?.scrollIntoView({ behavior: 'smooth' });
                 }
               }}
-              className="flex-shrink-0 px-5 py-3 rounded-xl bg-studio-red hover:bg-studio-redHover text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-studio-red/25 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-shrink-0 px-6 py-3.5 rounded-full bg-[#8B0000] hover:bg-[#A00000] text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-[#8B0000]/30 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] border border-[#A00000]/40"
             >
               <span>Réserver mon créneau</span>
               <ChevronRight className="w-4 h-4" />
