@@ -42,10 +42,11 @@ export const StudioSpacesSection: React.FC<StudioSpacesSectionProps> = ({
             
             {/* 1. Headline (Single Line, High-impact Editorial Typography) */}
             <ScrollReveal animation="fade-up" delay={60} duration={650}>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.4rem] xl:text-[2.75rem] font-black uppercase tracking-tight text-white leading-tight">
-                Un espace.{' '}
-                <span className="text-studio-red">
-                  Mille possibilités.
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.4rem] xl:text-[2.75rem] font-black uppercase tracking-wide text-white leading-tight flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span>Un espace.</span>
+                <span className="text-studio-red inline-flex items-center gap-x-2.5">
+                  <span>Mille</span>
+                  <span>possibilités.</span>
                 </span>
               </h2>
             </ScrollReveal>
