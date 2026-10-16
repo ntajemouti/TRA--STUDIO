@@ -282,9 +282,9 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
               <button
                 type="button"
                 onClick={onRequestQuote}
-                className="h-11 px-5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-bold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
+                className="h-11 px-5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-studio-red/40 text-white font-bold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
               >
-                Demander un devis sur-mesure
+                Demander un devis
               </button>
               <button
                 type="button"
@@ -292,7 +292,7 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
                 className="h-11 px-6 rounded-xl bg-studio-red hover:bg-studio-redHover text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-studio-red/25 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
               >
                 <Calendar className="w-3.5 h-3.5" />
-                <span>Réserver une session</span>
+                <span>Réserver une séance</span>
               </button>
             </div>
           </div>

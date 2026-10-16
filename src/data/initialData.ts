@@ -1,4 +1,5 @@
 import { Booking, QuoteRequest, StudioPackage, StudioSettings } from '../types';
+import { STUDIO_WHATSAPP_NUMBER } from '../config/booking';
 
 export const INITIAL_PACKAGES: StudioPackage[] = [
   {
@@ -130,7 +131,7 @@ export const INITIAL_SETTINGS: StudioSettings = {
   email: 'Tawfiqbennani@tra-studio.com',
   instagramHandle: 'tra__studio',
   instagramUrl: 'https://www.instagram.com/tra__studio?igsi=MThkb3NqdzBmODVuYQ==',
-  whatsappNumber: '212660719968',
+  whatsappNumber: STUDIO_WHATSAPP_NUMBER,
   availableTimeSlots: [
     '10:00',
     '11:00',

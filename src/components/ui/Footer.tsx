@@ -1,5 +1,6 @@
 import React from 'react';
 import { StudioSettings } from '../../types';
+import { STUDIO_WHATSAPP_NUMBER } from '../../config/booking';
 import { Phone, MessageCircle, Instagram, Mail, MapPin, Navigation, ExternalLink } from 'lucide-react';
 
 interface FooterProps {
@@ -7,7 +8,7 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ settings }) => {
-  const waNumber = settings.whatsappNumber || '212660719968';
+  const waNumber = settings.whatsappNumber || STUDIO_WHATSAPP_NUMBER;
   const waUrl = `https://wa.me/${waNumber.replace(/[^0-9]/g, '')}`;
   const phone = settings.phone || '+212 660-719968';
   const igUrl = settings.instagramUrl || 'https://www.instagram.com/tra__studio';

@@ -107,7 +107,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               className="h-11 sm:h-12 px-6 sm:px-7 rounded-full bg-[#8B0000] hover:bg-[#A00000] text-white font-semibold text-xs sm:text-sm tracking-wide shadow-xl shadow-[#8B0000]/40 hover:shadow-[#8B0000]/60 transition-all duration-200 active:scale-95 flex items-center gap-2 cursor-pointer border border-[#A00000]/40 hover:scale-[1.02]"
             >
               <ArrowRight className="w-3.5 h-3.5" />
-              <span>Réserver un studio</span>
+              <span>Réserver une séance</span>
             </button>
 
             {/* Secondary: Underlined Text Link with Arrow */}

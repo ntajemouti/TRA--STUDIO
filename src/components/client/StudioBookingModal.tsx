@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { StudioSettings } from '../../types';
+import { StudioPackage, StudioSettings } from '../../types';
+import { STUDIO_WHATSAPP_NUMBER, buildWhatsAppBookingUrl } from '../../config/booking';
 import {
   X,
-  Check,
   Calendar,
   Clock,
   User,
   Phone,
   Mail,
   FileText,
-  DollarSign,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
   ExternalLink,
   AlertCircle,
-  HelpCircle,
+  Film,
 } from 'lucide-react';
 
 const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
@@ -29,440 +28,409 @@ const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' 
   </svg>
 );
 
-export const AVAILABLE_SERVICES_LIST = [
+export const DEFAULT_STUDIO_SERVICES = [
   'PODCAST STUDIO (Multicam 4K & Son Broadcast)',
-  'SHOOTING PHOTO & VIDÉO (Mode & Lookbook)',
+  'SHOOTING PHOTO & VIDÉO (Mode, Lookbook & Packshot)',
   'SOCIAL MEDIA CONTENT (Formats Verticaux 9:16)',
   'BRANDING & MOTION DESIGN (Animation 2D/3D)',
   'VIDÉO CLIP & TEASER (Cinématique)',
   'CORPORATE & INTERVIEWS (Portraits d’Entreprise)',
-  'Projet Sur-Mesure / Autre',
-];
-
-const TIME_SLOTS = [
-  '10:00 - 12:00 (Matinée)',
-  '12:00 - 14:00 (Midi)',
-  '14:00 - 16:00 (Après-midi)',
-  '16:00 - 18:00 (Fin de journée)',
-  '18:00 - 20:00 (Soirée)',
-  'Créneau flexible / À convenir',
-];
-
-const BUDGET_RANGES = [
-  'Moins de 2 000 DH',
-  '2 000 - 4 000 DH',
-  '4 000 - 8 000 DH',
-  'Plus de 8 000 DH',
-  'À définir selon devis',
+  'Projet Sur-Mesure / Demande de Devis',
 ];
 
 interface StudioBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   settings?: StudioSettings;
+  packages?: StudioPackage[];
   initialService?: string | null;
-  /**
-   * Optional alternative submission hook (e.g. for future external webhook/formspree)
-   */
-  onExternalSubmit?: (payload: Record<string, any>) => Promise<void>;
 }
 
 export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
   isOpen,
   onClose,
   settings,
+  packages,
   initialService,
-  onExternalSubmit,
 }) => {
-  // Form step: 'form' | 'review' | 'sent'
-  const [step, setStep] = useState<'form' | 'review' | 'sent'>('form');
+  // Available services list derived from website packages or default list
+  const availableServices = packages && packages.length > 0
+    ? [...packages.map((p) => p.name), 'Projet Sur-Mesure / Demande de Devis']
+    : DEFAULT_STUDIO_SERVICES;
 
-  // Form states
+  // View state: 'form' | 'success'
+  const [view, setView] = useState<'form' | 'success'>('form');
+
+  // Form Fields
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('+212 ');
   const [email, setEmail] = useState('');
-  const [selectedService, setSelectedService] = useState<string>(AVAILABLE_SERVICES_LIST[0]);
+  const [service, setService] = useState<string>(availableServices[0]);
   const [preferredDate, setPreferredDate] = useState('');
-  const [preferredTime, setPreferredTime] = useState<string>(TIME_SLOTS[0]);
-  const [budgetRange, setBudgetRange] = useState<string>(BUDGET_RANGES[0]);
-  const [projectDescription, setProjectDescription] = useState('');
+  const [preferredTime, setPreferredTime] = useState('');
+  const [message, setMessage] = useState('');
 
-  // Validation errors
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [generatedWhatsAppUrl, setGeneratedWhatsAppUrl] = useState<string>('');
+  // Validation
+  const [errors, setErrors] = useState<{ fullName?: string; phone?: string; general?: string }>({});
+  const [generatedWhatsAppUrl, setGeneratedWhatsAppUrl] = useState('');
 
-  // Sync initial service when opened
+  // Synchronize initial service when modal opens
   useEffect(() => {
     if (initialService) {
-      const match = AVAILABLE_SERVICES_LIST.find((s) =>
-        s.toLowerCase().includes(initialService.toLowerCase()) ||
-        initialService.toLowerCase().includes(s.toLowerCase().split(' ')[0])
+      const match = availableServices.find(
+        (s) =>
+          s.toLowerCase().includes(initialService.toLowerCase()) ||
+          initialService.toLowerCase().includes(s.toLowerCase().split(' ')[0])
       );
       if (match) {
-        setSelectedService(match);
+        setService(match);
       } else {
-        setSelectedService(initialService);
+        setService(initialService);
       }
+    } else if (availableServices.length > 0) {
+      setService(availableServices[0]);
     }
-    // Reset to form view when reopening
+
     if (isOpen) {
-      setStep('form');
-      setValidationErrors([]);
+      setView('form');
+      setErrors({});
     }
   }, [initialService, isOpen]);
 
-  // Handle ESC key
+  // Lock body scroll and listen for Escape key
   useEffect(() => {
+    if (!isOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape') {
         onClose();
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  // Validate form before review
-  const handleProceedToReview = (e: React.FormEvent) => {
+  // Today's date in YYYY-MM-DD for datepicker min attribute
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  // Handle Form Submission
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const errors: string[] = [];
+    const newErrors: { fullName?: string; phone?: string; general?: string } = {};
 
     if (!fullName.trim()) {
-      errors.push('Veuillez renseigner votre nom complet.');
+      newErrors.fullName = 'Le nom complet est obligatoire.';
     }
 
-    const cleanPhone = phone.trim();
+    const cleanPhone = phone.replace(/[^0-9+]/g, '').trim();
     if (!cleanPhone || cleanPhone === '+212' || cleanPhone.length < 8) {
-      errors.push('Veuillez renseigner un numéro de téléphone valide.');
+      newErrors.phone = 'Un numéro de téléphone valide est obligatoire.';
     }
 
-    if (!selectedService) {
-      errors.push('Veuillez sélectionner une prestation.');
-    }
-
-    if (errors.length > 0) {
-      setValidationErrors(errors);
+    if (Object.keys(newErrors).length > 0) {
+      newErrors.general = 'Veuillez renseigner tous les champs obligatoires (Nom complet et Numéro de téléphone).';
+      setErrors(newErrors);
       return;
     }
 
-    setValidationErrors([]);
+    setErrors({});
 
-    // Generate the professional French WhatsApp message
-    const lines = [
-      'Bonjour TRA Studio ! 🎬',
-      'Je souhaite faire une demande de réservation pour une session en studio.',
-      '',
-      '📋 DÉTAILS DE MA DEMANDE :',
-      `• Prestation souhaitée : ${selectedService}`,
-    ];
+    // Target WhatsApp number from central configuration or settings
+    const targetNumber = settings?.whatsappNumber || STUDIO_WHATSAPP_NUMBER;
 
-    if (preferredDate.trim()) {
-      lines.push(`• Date souhaitée : ${preferredDate.trim()}`);
+    // Generate Click-to-Chat URL
+    const url = buildWhatsAppBookingUrl(
+      {
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        email: email.trim() || undefined,
+        service,
+        preferredDate: preferredDate || undefined,
+        preferredTime: preferredTime || undefined,
+        message: message.trim() || undefined,
+      },
+      targetNumber
+    );
+
+    setGeneratedWhatsAppUrl(url);
+    setView('success');
+
+    // Automatically trigger opening WhatsApp in a new tab
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch {
+      // Browser popup blocked; user can click the prominent button in the success view
     }
-    if (preferredTime) {
-      lines.push(`• Créneau horaire : ${preferredTime}`);
-    }
-    if (budgetRange) {
-      lines.push(`• Budget indicatif : ${budgetRange}`);
-    }
-
-    lines.push('');
-    lines.push('👤 MES COORDONNÉES :');
-    lines.push(`• Nom complet : ${fullName.trim()}`);
-    lines.push(`• Téléphone : ${cleanPhone}`);
-    if (email.trim()) {
-      lines.push(`• Email : ${email.trim()}`);
-    }
-
-    if (projectDescription.trim()) {
-      lines.push('');
-      lines.push(`📝 DESCRIPTION DU PROJET :`);
-      lines.push(projectDescription.trim());
-    }
-
-    lines.push('');
-    lines.push('Je souhaite vérifier les disponibilités du plateau avec vous et finaliser les détails. Merci !');
-
-    const messageText = lines.join('\n');
-    const waNumber = (settings?.whatsappNumber || '212660719968').replace(/[^0-9]/g, '');
-    const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(messageText)}`;
-
-    setGeneratedWhatsAppUrl(waUrl);
-    setStep('review');
   };
 
-  // Final submission on WhatsApp
-  const handleSendOnWhatsApp = async () => {
-    // If an alternative external hook is provided, call it in the background
-    if (onExternalSubmit) {
-      try {
-        await onExternalSubmit({
-          fullName,
-          phone,
-          email,
-          service: selectedService,
-          preferredDate,
-          preferredTime,
-          budgetRange,
-          projectDescription,
-          submittedAt: new Date().toISOString(),
-        });
-      } catch (err) {
-        console.warn('External submit hook failed, continuing to WhatsApp:', err);
-      }
-    }
-
-    // Launch WhatsApp
+  const handleOpenWhatsAppManually = () => {
     if (generatedWhatsAppUrl) {
       window.open(generatedWhatsAppUrl, '_blank', 'noopener,noreferrer');
     }
-    setStep('sent');
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="booking-modal-title"
+      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 md:p-6 overflow-y-auto animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl my-auto text-left space-y-6"
+        className="relative w-full max-w-xl bg-[#0A0A0A] border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl my-auto text-left space-y-6 transition-all duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 w-9 h-9 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 flex items-center justify-center transition-all cursor-pointer"
-          aria-label="Fermer"
+          className="absolute top-5 right-5 w-9 h-9 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-studio-red flex items-center justify-center transition-all cursor-pointer z-10"
+          aria-label="Fermer la fenêtre de réservation"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* =========================================================================
-            HEADER OF MODAL
+            VIEW 1: BOOKING & QUOTE FORM
            ========================================================================= */}
-        <div className="space-y-1.5 pr-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-studio-red/10 border border-studio-red/30 text-studio-red text-xs font-bold uppercase tracking-wider">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>Demande de Réservation • TRA Studio Témara</span>
-          </div>
+        {view === 'form' && (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Modal Header */}
+            <div className="space-y-1.5 pr-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-studio-red/15 border border-studio-red/30 text-studio-red text-[11px] font-bold uppercase tracking-wider">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Réservation & Devis Studio</span>
+              </div>
+              <h3 id="booking-modal-title" className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
+                Réservez votre séance
+              </h3>
+              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-normal">
+                Indiquez vos besoins ci-dessous pour être mis en relation directe avec l'équipe TRA Studio via WhatsApp.
+              </p>
+            </div>
 
-          <h2 className="text-2xl sm:text-3xl font-black uppercase text-white tracking-tight">
-            {step === 'review'
-              ? 'Vérifiez votre demande'
-              : step === 'sent'
-              ? 'Message préparé avec succès'
-              : 'Réserver votre session'}
-          </h2>
-
-          <p className="text-xs sm:text-sm text-zinc-400">
-            {step === 'review'
-              ? 'Vérifiez les informations ci-dessous avant d’ouvrir WhatsApp pour transmettre votre demande.'
-              : step === 'sent'
-              ? 'Votre message a été rédigé. Envoyez-le sur WhatsApp pour échanger avec notre équipe.'
-              : 'Remplissez le formulaire ci-dessous pour vérifier les disponibilités et planifier votre tournage.'}
-          </p>
-        </div>
-
-        {/* =========================================================================
-            VIEW 1: FORM ENTRY
-           ========================================================================= */}
-        {step === 'form' && (
-          <form onSubmit={handleProceedToReview} className="space-y-5">
-            
-            {/* Validation errors */}
-            {validationErrors.length > 0 && (
-              <div className="p-3.5 rounded-2xl bg-studio-red/25 border border-studio-red text-xs text-zinc-100 space-y-1">
-                <div className="font-bold flex items-center gap-1.5 text-white">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>Veuillez corriger les points suivants :</span>
-                </div>
-                <ul className="list-disc pl-5 space-y-0.5">
-                  {validationErrors.map((err, i) => (
-                    <li key={i}>{err}</li>
-                  ))}
-                </ul>
+            {/* Validation Alert Box if required fields are missing */}
+            {errors.general && (
+              <div className="p-3.5 rounded-2xl bg-studio-red/20 border border-studio-red text-zinc-100 flex items-start gap-2.5 text-xs animate-in shake duration-200">
+                <AlertCircle className="w-4 h-4 text-studio-red shrink-0 mt-0.5" />
+                <span className="font-medium leading-relaxed">{errors.general}</span>
               </div>
             )}
 
-            {/* Service selector */}
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300">
-                Prestation souhaitée <span className="text-studio-red">*</span>
-              </label>
-              <select
-                value={selectedService}
-                onChange={(e) => setSelectedService(e.target.value)}
-                className="w-full h-11 px-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors cursor-pointer"
-              >
-                {AVAILABLE_SERVICES_LIST.map((srv, idx) => (
-                  <option key={idx} value={srv} className="bg-zinc-950 text-white">
-                    {srv}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Grid 2 Columns: Client Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {/* Nom complet */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  Nom complet <span className="text-studio-red">*</span>
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: Yasmine Alaoui"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-10 pr-3.5 h-11 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors"
-                  />
+            {/* FORM INPUTS */}
+            <div className="space-y-4">
+              
+              {/* Row 1: Nom complet (Required) & Téléphone (Required) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                
+                {/* 1. Nom complet — Required */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300">
+                    Nom complet <span className="text-studio-red font-black">*</span>
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: Yasmine Alaoui"
+                      value={fullName}
+                      onChange={(e) => {
+                        setFullName(e.target.value);
+                        if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: undefined, general: undefined }));
+                      }}
+                      className={`w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 rounded-xl text-xs text-white placeholder-zinc-500 transition-colors focus:outline-none ${
+                        errors.fullName
+                          ? 'border-2 border-studio-red focus:border-studio-red'
+                          : 'border border-zinc-800 focus:border-studio-red'
+                      }`}
+                    />
+                  </div>
+                  {errors.fullName && (
+                    <span className="text-[10px] text-studio-red font-semibold block">{errors.fullName}</span>
+                  )}
                 </div>
+
+                {/* 2. Numéro de téléphone — Required */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300">
+                    Numéro de téléphone <span className="text-studio-red font-black">*</span>
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="tel"
+                      required
+                      placeholder="+212 6 XX XX XX XX"
+                      value={phone}
+                      onChange={(e) => {
+                        setPhone(e.target.value);
+                        if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined, general: undefined }));
+                      }}
+                      className={`w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 rounded-xl text-xs text-white placeholder-zinc-500 font-mono transition-colors focus:outline-none ${
+                        errors.phone
+                          ? 'border-2 border-studio-red focus:border-studio-red'
+                          : 'border border-zinc-800 focus:border-studio-red'
+                      }`}
+                    />
+                  </div>
+                  {errors.phone && (
+                    <span className="text-[10px] text-studio-red font-semibold block">{errors.phone}</span>
+                  )}
+                </div>
+
               </div>
 
-              {/* Téléphone / WhatsApp */}
+              {/* Row 2: Service souhaité (Required dropdown) */}
               <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  Téléphone / WhatsApp <span className="text-studio-red">*</span>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300">
+                  Service souhaité <span className="text-studio-red font-black">*</span>
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+212 6 XX XX XX XX"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-10 pr-3.5 h-11 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Date souhaitée */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  Date souhaitée <span className="text-zinc-600 font-normal">(Optionnel)</span>
-                </label>
-                <div className="relative">
-                  <Calendar className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Ex: Samedi 24 Octobre, ou au plus vite"
-                    value={preferredDate}
-                    onChange={(e) => setPreferredDate(e.target.value)}
-                    className="w-full pl-10 pr-3.5 h-11 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors"
-                  />
-                </div>
-              </div>
-
-              {/* Créneau horaire */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  Créneau horaire préféré <span className="text-zinc-600 font-normal">(Optionnel)</span>
-                </label>
-                <div className="relative">
-                  <Clock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Film className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <select
-                    value={preferredTime}
-                    onChange={(e) => setPreferredTime(e.target.value)}
-                    className="w-full pl-10 pr-3.5 h-11 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors cursor-pointer"
+                    value={service}
+                    onChange={(e) => setService(e.target.value)}
+                    className="w-full pl-10 pr-4 h-11 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors cursor-pointer"
                   >
-                    {TIME_SLOTS.map((t, idx) => (
-                      <option key={idx} value={t} className="bg-zinc-950 text-white">
-                        {t}
+                    {availableServices.map((srv, idx) => (
+                      <option key={idx} value={srv} className="bg-[#0A0A0A] text-white py-1">
+                        {srv}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Budget indicatif */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  Budget indicatif <span className="text-zinc-600 font-normal">(Optionnel)</span>
-                </label>
-                <div className="relative">
-                  <DollarSign className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <select
-                    value={budgetRange}
-                    onChange={(e) => setBudgetRange(e.target.value)}
-                    className="w-full pl-10 pr-3.5 h-11 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors cursor-pointer"
-                  >
-                    {BUDGET_RANGES.map((b, idx) => (
-                      <option key={idx} value={b} className="bg-zinc-950 text-white">
-                        {b}
-                      </option>
-                    ))}
-                  </select>
+              {/* Row 3: Date souhaitée & Heure souhaitée (Both Optional) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                
+                {/* 4. Date souhaitée — Optional */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                    Date souhaitée <span className="text-zinc-600 font-normal">(Optionnel)</span>
+                  </label>
+                  <div className="relative">
+                    <Calendar className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="date"
+                      min={todayStr}
+                      value={preferredDate}
+                      onChange={(e) => setPreferredDate(e.target.value)}
+                      className="w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors"
+                    />
+                  </div>
                 </div>
+
+                {/* 5. Heure souhaitée — Optional */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                    Heure souhaitée <span className="text-zinc-600 font-normal">(Optionnel)</span>
+                  </label>
+                  <div className="relative">
+                    <Clock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Ex: 14:00 ou Matinée"
+                      value={preferredTime}
+                      onChange={(e) => setPreferredTime(e.target.value)}
+                      className="w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors"
+                    />
+                  </div>
+                </div>
+
               </div>
 
-              {/* Email (Optionnel) */}
+              {/* Row 4: Adresse e-mail (Optional) */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  Adresse email <span className="text-zinc-600 font-normal">(Optionnel)</span>
+                  Adresse e-mail <span className="text-zinc-600 font-normal">(Optionnel)</span>
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="email"
-                    placeholder="contact@example.com"
+                    placeholder="contact@exemple.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-3.5 h-11 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors"
+                    className="w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors"
                   />
                 </div>
               </div>
-            </div>
 
-            {/* Description du projet */}
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                Description / Détails du projet <span className="text-zinc-600 font-normal">(Optionnel)</span>
-              </label>
-              <div className="relative">
-                <FileText className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
-                <textarea
-                  rows={2}
-                  placeholder="Ex: Nombre d’invités, thématique du podcast, besoin de montage ou de retouches..."
-                  value={projectDescription}
-                  onChange={(e) => setProjectDescription(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors resize-none"
-                />
+              {/* Row 5: Message / Détails supplémentaires (Optional) */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                  Message / Détails supplémentaires <span className="text-zinc-600 font-normal">(Optionnel)</span>
+                </label>
+                <div className="relative">
+                  <FileText className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3 pointer-events-none" />
+                  <textarea
+                    rows={2}
+                    placeholder="Précisez votre projet, nombre d'intervenants, besoins de montage..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="w-full pl-10 pr-3.5 py-2.5 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors resize-none"
+                  />
+                </div>
               </div>
+
             </div>
 
-            {/* Submit button: Proceed to Review */}
+            {/* Submit Button: “Continuer sur WhatsApp” */}
             <div className="space-y-2 pt-2">
               <button
                 type="submit"
-                className="w-full h-13 rounded-2xl bg-studio-red hover:bg-studio-redHover text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-studio-red/30 transition-all cursor-pointer group"
+                className="w-full h-13 rounded-2xl bg-studio-red hover:bg-studio-redHover text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-studio-red/30 transition-all cursor-pointer group active:scale-[0.98]"
               >
-                <span>Vérifier et continuer vers WhatsApp</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <WhatsAppIcon className="w-5 h-5 fill-current" />
+                <span>Continuer sur WhatsApp</span>
+                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
               </button>
-
+              
               <p className="text-center text-[11px] text-zinc-500">
-                Vous pourrez vérifier l’intégralité de vos informations à l'étape suivante.
+                La demande sera pré-remplie dans WhatsApp. Vous confirmerez l'envoi en direct avec le studio.
               </p>
             </div>
           </form>
         )}
 
         {/* =========================================================================
-            VIEW 2: REVIEW & CONFIRMATION
+            VIEW 2: SUCCESS STYLE MESSAGE & WHATSAPP REDIRECTION CONFIRMATION
            ========================================================================= */}
-        {step === 'review' && (
-          <div className="space-y-6">
-            {/* Recap Box */}
-            <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 space-y-3.5 text-xs text-zinc-300">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
-                <span className="font-bold text-white uppercase text-xs tracking-wider">
+        {view === 'success' && (
+          <div className="space-y-6 py-2 animate-in zoom-in-95 duration-200">
+            {/* Top Success Badge */}
+            <div className="text-center space-y-3">
+              <div className="w-16 h-16 rounded-full bg-studio-red/15 border border-studio-red/40 text-studio-red flex items-center justify-center mx-auto shadow-xl shadow-studio-red/20">
+                <CheckCircle2 className="w-9 h-9" />
+              </div>
+
+              <div className="space-y-1.5 max-w-md mx-auto">
+                <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
+                  Demande préparée avec succès !
+                </h3>
+                {/* EXACT REQUIRED MESSAGE */}
+                <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-medium">
+                  Votre demande est prête. Envoyez le message sur WhatsApp pour finaliser votre demande.
+                </p>
+              </div>
+            </div>
+
+            {/* Summary Card */}
+            <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 space-y-3 text-xs text-zinc-300">
+              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2.5">
+                <span className="font-bold text-white uppercase text-[11px] tracking-wider">
                   Récapitulatif de votre demande :
                 </span>
                 <span className="px-2 py-0.5 rounded bg-studio-red/20 text-studio-red font-mono text-[10px] font-bold">
@@ -482,8 +450,8 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
                 </div>
 
                 <div className="sm:col-span-2">
-                  <span className="text-zinc-500 font-semibold block text-[11px]">Prestation choisie :</span>
-                  <span className="text-white font-bold text-studio-red">{selectedService}</span>
+                  <span className="text-zinc-500 font-semibold block text-[11px]">Service souhaité :</span>
+                  <span className="text-studio-red font-bold">{service}</span>
                 </div>
 
                 {preferredDate && (
@@ -495,42 +463,24 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
 
                 {preferredTime && (
                   <div>
-                    <span className="text-zinc-500 font-semibold block text-[11px]">Créneau :</span>
+                    <span className="text-zinc-500 font-semibold block text-[11px]">Heure souhaitée :</span>
                     <span className="text-white">{preferredTime}</span>
                   </div>
                 )}
 
-                {budgetRange && (
-                  <div>
-                    <span className="text-zinc-500 font-semibold block text-[11px]">Budget indicatif :</span>
-                    <span className="text-white">{budgetRange}</span>
-                  </div>
-                )}
-
                 {email && (
-                  <div>
+                  <div className="sm:col-span-2">
                     <span className="text-zinc-500 font-semibold block text-[11px]">Email :</span>
                     <span className="text-white">{email}</span>
                   </div>
                 )}
 
-                {projectDescription && (
+                {message && (
                   <div className="sm:col-span-2 pt-1 border-t border-zinc-800/60">
-                    <span className="text-zinc-500 font-semibold block text-[11px]">Détails du projet :</span>
-                    <p className="text-zinc-300 leading-relaxed italic mt-0.5">{projectDescription}</p>
+                    <span className="text-zinc-500 font-semibold block text-[11px]">Message / Détails :</span>
+                    <p className="text-zinc-300 leading-relaxed italic mt-0.5">{message}</p>
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* Instruction Notice */}
-            <div className="p-3.5 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-start gap-3 text-xs text-zinc-400">
-              <HelpCircle className="w-4 h-4 text-studio-red shrink-0 mt-0.5" />
-              <div className="space-y-0.5 leading-relaxed">
-                <span className="font-bold text-white block">Important :</span>
-                <span>
-                  Votre demande n'est transmise qu’une fois le message WhatsApp envoyé. L’équipe TRA Studio confirmera la disponibilité du plateau avant validation définitive.
-                </span>
               </div>
             </div>
 
@@ -538,64 +488,32 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
             <div className="space-y-2.5 pt-1">
               <button
                 type="button"
-                onClick={handleSendOnWhatsApp}
-                className="w-full h-13 sm:h-14 rounded-2xl bg-studio-red hover:bg-studio-redHover active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-studio-red/30 transition-all cursor-pointer"
+                onClick={handleOpenWhatsAppManually}
+                className="w-full h-13 rounded-2xl bg-studio-red hover:bg-studio-redHover text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-studio-red/30 transition-all cursor-pointer active:scale-[0.98]"
               >
                 <WhatsAppIcon className="w-5 h-5 fill-current" />
-                <span>Envoyer ma demande sur WhatsApp</span>
-                <ExternalLink className="w-4 h-4" />
+                <span>Ouvrir WhatsApp pour envoyer</span>
+                <ExternalLink className="w-4 h-4 ml-1" />
               </button>
 
-              <button
-                type="button"
-                onClick={() => setStep('form')}
-                className="w-full py-2.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Modifier mes informations</span>
-              </button>
-            </div>
-          </div>
-        )}
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setView('form')}
+                  className="py-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Modifier mes informations</span>
+                </button>
 
-        {/* =========================================================================
-            VIEW 3: DISPATCHED / SENT CONFIRMATION
-           ========================================================================= */}
-        {step === 'sent' && (
-          <div className="space-y-6 py-4 text-center animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 rounded-full bg-studio-red/15 border border-studio-red/40 text-studio-red flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-9 h-9" />
-            </div>
-
-            <div className="space-y-2 max-w-md mx-auto">
-              <h3 className="text-xl sm:text-2xl font-bold text-white uppercase">
-                Votre message a été généré !
-              </h3>
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                WhatsApp s’est ouvert avec vos coordonnées pré-remplies. Cliquez sur <strong>« Envoyer »</strong> dans l'application pour démarrer l'échange avec l'équipe TRA Studio.
-              </p>
-            </div>
-
-            {/* Re-open WhatsApp button if blocked by browser */}
-            <div className="space-y-3 max-w-md mx-auto pt-2">
-              <a
-                href={generatedWhatsAppUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full h-13 rounded-2xl bg-studio-red hover:bg-studio-redHover text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-studio-red/30 transition-all cursor-pointer"
-              >
-                <WhatsAppIcon className="w-5 h-5 fill-current" />
-                <span>Ouvrir à nouveau WhatsApp</span>
-                <ExternalLink className="w-4 h-4" />
-              </a>
-
-              <button
-                type="button"
-                onClick={onClose}
-                className="w-full py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-bold uppercase tracking-wider text-zinc-300 hover:text-white transition-colors cursor-pointer"
-              >
-                Fermer cette fenêtre
-              </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="py-2 text-xs font-semibold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                >
+                  Fermer
+                </button>
+              </div>
             </div>
           </div>
         )}

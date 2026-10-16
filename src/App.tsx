@@ -145,6 +145,7 @@ export function App() {
         isOpen={isBookingModalOpen}
         onClose={handleCloseBooking}
         settings={settings}
+        packages={packages}
         initialService={selectedServiceForModal}
       />
     </div>

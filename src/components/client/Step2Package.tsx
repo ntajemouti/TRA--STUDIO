@@ -321,10 +321,10 @@ export const Step2Package: React.FC<Step2PackageProps> = ({
 
           <button
             type="button"
-            onClick={() => onSelectService('Projet Sur-Mesure')}
-            className="shrink-0 px-6 py-3.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl active:scale-95 transition-all cursor-pointer"
+            onClick={() => onSelectService('Projet Sur-Mesure / Demande de Devis')}
+            className="shrink-0 px-6 py-3.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-studio-red/40 text-white font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl active:scale-95 transition-all cursor-pointer"
           >
-            <span>Demander un Devis Sur-Mesure</span>
+            <span>Demander un devis</span>
             <ArrowRight className="w-4 h-4 text-studio-red" />
           </button>
         </div>
