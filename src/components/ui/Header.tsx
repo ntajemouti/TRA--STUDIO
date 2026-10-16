@@ -29,7 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'accueil', label: 'Accueil', targetId: 'hero' },
   { id: 'univers', label: "L'Univers", targetId: 'univers' },
   { id: 'services', label: 'Services', targetId: 'services' },
-  { id: 'realisations', label: 'Réalisations', targetId: 'realisations' },
+  { id: 'reels', label: 'Reels', targetId: 'reels' },
   { id: 'a-propos', label: 'A propos de nous', targetId: 'a-propos' },
   { id: 'contact', label: 'Contact', targetId: 'contact' },
 ];
@@ -45,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({ settings, onStartBooking }) => {
       const scrollPos = window.scrollY + 220;
       const contactEl = document.getElementById('contact') || document.getElementById('location');
       const aboutEl = document.getElementById('a-propos') || document.getElementById('experience');
-      const portfolioEl = document.getElementById('realisations') || document.getElementById('reels') || document.getElementById('portfolio');
+      const reelsEl = document.getElementById('reels');
       const servicesEl = document.getElementById('services') || document.getElementById('catalogue');
       const universEl = document.getElementById('univers') || document.getElementById('studios');
 
@@ -53,8 +53,8 @@ export const Header: React.FC<HeaderProps> = ({ settings, onStartBooking }) => {
         setActiveSection('contact');
       } else if (aboutEl && scrollPos >= aboutEl.offsetTop) {
         setActiveSection('a-propos');
-      } else if (portfolioEl && scrollPos >= portfolioEl.offsetTop) {
-        setActiveSection('realisations');
+      } else if (reelsEl && scrollPos >= reelsEl.offsetTop) {
+        setActiveSection('reels');
       } else if (servicesEl && scrollPos >= servicesEl.offsetTop) {
         setActiveSection('services');
       } else if (universEl && scrollPos >= universEl.offsetTop) {

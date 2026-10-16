@@ -8,8 +8,6 @@ import { HeroSection } from './components/showcase/HeroSection';
 import { StudioSpacesSection } from './components/showcase/StudioSpacesSection';
 import { Step2Package } from './components/client/Step2Package';
 import { ClientReelsSection } from './components/showcase/ClientReelsSection';
-import { PortfolioSection } from './components/showcase/PortfolioSection';
-import { ReferencesSection } from './components/showcase/ReferencesSection';
 import { InstagramSection } from './components/showcase/InstagramSection';
 import { ExperienceSection } from './components/showcase/ExperienceSection';
 import { EquipmentSection } from './components/showcase/EquipmentSection';
@@ -84,28 +82,13 @@ export function App() {
           </section>
 
           {/* 4. Client Reels & Authentic TRA Videos */}
-          <div id="realisations" className="scroll-mt-20">
-            <div id="reels">
-              <ClientReelsSection
-                onStartBooking={() => handleOpenBooking('SOCIAL MEDIA CONTENT (Formats Verticaux 9:16)')}
-              />
-            </div>
-          </div>
-
-          {/* 5. Portfolio & Project Gallery */}
-          <div id="portfolio" className="scroll-mt-20">
-            <PortfolioSection
-              onStartBooking={() => handleOpenBooking('Session Studio')}
-              onRequestQuote={() => handleOpenBooking('Projet Sur-Mesure / Autre')}
+          <div id="reels" className="scroll-mt-20">
+            <ClientReelsSection
+              onStartBooking={() => handleOpenBooking('SOCIAL MEDIA CONTENT (Formats Verticaux 9:16)')}
             />
           </div>
 
-          {/* 6. References & Clients */}
-          <div id="references" className="scroll-mt-20">
-            <ReferencesSection />
-          </div>
-
-          {/* 7. Instagram Feed 6 Posts */}
+          {/* 5. Instagram Feed 6 Posts */}
           <div id="instagram" className="scroll-mt-20">
             <InstagramSection settings={settings} />
           </div>
