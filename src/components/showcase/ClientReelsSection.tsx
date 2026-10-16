@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX, ChevronLeft, ChevronRight, Maximize2, X, Play } from 'lucide-react';
+import { Volume2, VolumeX, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { ScrollReveal } from '../ui/ScrollReveal';
 
 export interface ClientReelItem {
@@ -87,7 +87,6 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [activeUnmutedId, setActiveUnmutedId] = useState<string | null>(null);
   const [pausedMap, setPausedMap] = useState<Record<string, boolean>>({});
-  const [modalReel, setModalReel] = useState<ClientReelItem | null>(null);
 
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
   const touchStartX = useRef<number>(0);
@@ -155,15 +154,13 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
 
   // Auto-advance carousel every 6 seconds in an endless circular loop (KOUL 6 SECONDS)
   useEffect(() => {
-    if (modalReel) return;
-
     const timer = setInterval(() => {
       setIsTransitioning(true);
       setCurrentIndex((prev) => prev + 1);
     }, 6000);
 
     return () => clearInterval(timer);
-  }, [modalReel]);
+  }, []);
 
   const handleNext = () => {
     setIsTransitioning(true);
@@ -249,18 +246,6 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
       video.pause();
       setPausedMap((prev) => ({ ...prev, [reelId]: true }));
     }
-  };
-
-  const handleOpenModal = (reel: ClientReelItem, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (activeUnmutedId) {
-      setActiveUnmutedId(null);
-    }
-    setModalReel(reel);
-  };
-
-  const handleCloseModal = () => {
-    setModalReel(null);
   };
 
   return (
@@ -375,9 +360,8 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
                         />
 
-                        {/* Top Action Controls */}
-                        <div className="absolute top-3 inset-x-3 flex items-center justify-end gap-1.5 z-20 pointer-events-auto">
-                          {/* Sound Toggle */}
+                        {/* Top Action Control: Sound Toggle ONLY */}
+                        <div className="absolute top-3 right-3 z-20 pointer-events-auto">
                           <button
                             type="button"
                             onClick={(e) => handleToggleMute(item.id, e)}
@@ -389,16 +373,6 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
                             title={isMuted ? 'Activer le son' : 'Couper le son'}
                           >
                             {!isMuted ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-                          </button>
-
-                          {/* Fullscreen Expand */}
-                          <button
-                            type="button"
-                            onClick={(e) => handleOpenModal(item, e)}
-                            className="w-8 h-8 rounded-full flex items-center justify-center bg-black/60 backdrop-blur-md text-white/90 border border-white/20 hover:bg-black/80 hover:text-white transition-all duration-200 cursor-pointer"
-                            title="Agrandir la vidéo"
-                          >
-                            <Maximize2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
 
@@ -478,41 +452,6 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
           </div>
         </ScrollReveal>
       </div>
-
-      {/* =========================================================================
-          FULLSCREEN / EXPANDED REEL MODAL
-         ========================================================================= */}
-      {modalReel && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
-          onClick={handleCloseModal}
-        >
-          <div
-            className="relative w-full max-w-[420px] aspect-[9/16] rounded-3xl overflow-hidden bg-black border border-zinc-800 shadow-2xl flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Video Player */}
-            <video
-              src={modalReel.videoUrl}
-              poster={modalReel.posterUrl}
-              autoPlay
-              controls
-              playsInline
-              className="w-full h-full object-cover"
-            />
-
-            {/* Close button */}
-            <button
-              type="button"
-              onClick={handleCloseModal}
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/70 backdrop-blur-md text-white flex items-center justify-center border border-white/20 hover:bg-studio-red hover:border-studio-red transition-all cursor-pointer z-30"
-              aria-label="Fermer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
     </section>
   );
 };
