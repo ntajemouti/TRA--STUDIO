@@ -2,7 +2,7 @@ import { StudioPackage, StudioSettings, QuoteRequest } from '../types';
 import { INITIAL_PACKAGES, INITIAL_SETTINGS } from './initialData';
 
 const STORAGE_KEYS = {
-  PACKAGES: 'tra_packages_prod_v8',
+  PACKAGES: 'tra_packages_prod_v9',
   SETTINGS: 'tra_settings_prod_v4',
   QUOTES: 'tra_quotes_prod_v2',
 };

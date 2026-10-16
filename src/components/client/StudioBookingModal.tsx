@@ -29,12 +29,9 @@ const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' 
 );
 
 export const DEFAULT_STUDIO_SERVICES = [
-  'PODCAST STUDIO (Multicam 4K & Son Broadcast)',
-  'SHOOTING PHOTO & VIDÉO (Mode, Lookbook & Packshot)',
-  'SOCIAL MEDIA CONTENT (Formats Verticaux 9:16)',
-  'BRANDING & MOTION DESIGN (Animation 2D/3D)',
-  'VIDÉO CLIP & TEASER (Cinématique)',
-  'CORPORATE & INTERVIEWS (Portraits d’Entreprise)',
+  'Podcast + Montage (1500 Dhs/h)',
+  'Podcast Tournage Brut (1000 Dhs/h)',
+  'Reels + Montage (1900 Dhs/h)',
   'Projet Sur-Mesure / Demande de Devis',
 ];
 

@@ -1,5 +1,10 @@
 export type BookingStatus = 'new' | 'confirmed' | 'pending' | 'completed' | 'cancelled';
 
+export interface ServiceCheckItem {
+  text: string;
+  included: boolean;
+}
+
 export interface StudioPackage {
   id: string;
   name: string;
@@ -8,6 +13,8 @@ export interface StudioPackage {
   subtitle: string;
   description: string;
   features: string[];
+  equipmentItems?: ServiceCheckItem[];
+  deliverablesItems?: ServiceCheckItem[];
   popular?: boolean;
   active: boolean;
   icon?: string;
