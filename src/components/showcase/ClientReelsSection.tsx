@@ -135,7 +135,7 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
   return (
     <section id="reels" className="py-16 sm:py-24 bg-studio-bg text-white scroll-mt-20 relative overflow-hidden">
       {/* Ambient background glow matching podcasty vibe */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-r from-orange-600/10 via-rose-600/10 to-pink-600/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-r from-studio-red/10 via-studio-red/15 to-studio-red/10 rounded-full blur-[160px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12 relative z-10">
         {/* =========================================================================
@@ -151,7 +151,7 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
             </span>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-              <span className="bg-gradient-to-r from-[#ff5722] via-[#f50057] to-[#d81b60] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#8B0000] via-[#A00000] to-[#8B0000] bg-clip-text text-transparent">
                 Des reels et vidéos de nos clients
               </span>
             </h2>

@@ -3,6 +3,14 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* TRA Studio brand palette */
+    --tra-red: #8B0000;
+    --tra-red-hover: #A00000;
+    --tra-red-rgb: 139, 0, 0;
+    --tra-black: #0A0A0A;
+    --tra-offwhite: #F5F5F5;
+  }
   html {
     scroll-behavior: smooth;
   }
@@ -22,16 +30,16 @@
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #5A0F14;
+    background: var(--tra-red);
   }
 }
 
 @keyframes pulseGlow {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(90, 15, 20, 0.3);
+    box-shadow: 0 0 15px rgba(var(--tra-red-rgb), 0.35);
   }
   50% {
-    box-shadow: 0 0 30px rgba(117, 20, 27, 0.6);
+    box-shadow: 0 0 30px rgba(var(--tra-red-rgb), 0.65);
   }
 }
 

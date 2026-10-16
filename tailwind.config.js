@@ -14,11 +14,11 @@ export default {
           cardHover: '#181818',
           border: '#232323',
           borderLight: '#323232',
-          red: '#5A0F14', // Deep Burgundy / Dark Blood-Red #5A0F14
-          redHover: '#75141B', // Rich Burgundy hover
-          burgundy: '#5A0F14',
-          burgundyLight: '#8A1C24',
-          burgundyDark: '#3E0A0E',
+          red: '#8B0000', // TRA Studio primary brand red (deep red) #8B0000
+          redHover: '#A00000', // Hover / pressed shade of the brand red
+          burgundy: '#8B0000',
+          burgundyLight: '#A00000',
+          burgundyDark: '#5C0000',
           muted: '#8E8E93',
           subtle: '#5A5A60',
         }

@@ -73,7 +73,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-black/40 to-transparent pointer-events-none z-1" />
 
         {/* Subtle dark red ambient atmospheric glow */}
-        <div className="absolute top-10 left-10 w-96 h-96 bg-[#5A0F14]/20 rounded-full blur-[140px] pointer-events-none z-1" />
+        <div className="absolute top-10 left-10 w-96 h-96 bg-[#8B0000]/20 rounded-full blur-[140px] pointer-events-none z-1" />
 
         {/* =========================================================================
             TOP & MIDDLE: EXACT TYPOGRAPHY & MESSAGING (Matching Mockup)
@@ -82,20 +82,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           
           {/* Eyebrow: PODCAST // REELS // YOUTUBE VIDEO with dark red slashes */}
           <p className="font-sans text-[11px] sm:text-xs font-bold tracking-[0.25em] text-white uppercase select-none">
-            PODCAST <span className="text-[#8E1B24] font-black">//</span> REELS <span className="text-[#8E1B24] font-black">//</span> YOUTUBE VIDEO
+            PODCAST <span className="text-[#8B0000] font-black">//</span> REELS <span className="text-[#8B0000] font-black">//</span> YOUTUBE VIDEO
           </p>
 
           {/* Main Headline: Bebas Neue, 2 lines, VOTRE PROCHAINE (White) / IDÉE FORTE COMMENCE ICI. (Dark Red) */}
           <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-[5.4rem] xl:text-[6.2rem] tracking-wide uppercase leading-[0.92] drop-shadow-2xl">
             <span className="block text-white">VOTRE PROCHAINE</span>
-            <span className="block text-[#8E1B24] drop-shadow-[0_4px_20px_rgba(142,27,36,0.5)]">
+            <span className="block text-[#8B0000] drop-shadow-[0_4px_20px_rgba(139,0,0,0.5)]">
               IDÉE FORTE COMMENCE ICI.
             </span>
           </h1>
 
           {/* Subtitle / Paragraph */}
           <p className="font-sans text-xs sm:text-sm text-zinc-300/90 font-normal leading-relaxed max-w-lg">
-            Studio créatif à Casablanca et Marrakech pour donner vie à vos projets audio, vidéo et photo.
+            Studio créatif d'exception à Témara pour donner vie à vos projets audio, vidéo et photo.
           </p>
 
           {/* CTAs: Dark Red Pill Button + Underlined Text Link with Arrow */}
@@ -104,7 +104,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <button
               type="button"
               onClick={onStartBooking}
-              className="h-11 sm:h-12 px-6 sm:px-7 rounded-full bg-[#5A0F14] hover:bg-[#75141B] text-white font-semibold text-xs sm:text-sm tracking-wide shadow-xl shadow-[#5A0F14]/40 hover:shadow-[#5A0F14]/60 transition-all duration-200 active:scale-95 flex items-center gap-2 cursor-pointer border border-[#75141B]/40 hover:scale-[1.02]"
+              className="h-11 sm:h-12 px-6 sm:px-7 rounded-full bg-[#8B0000] hover:bg-[#A00000] text-white font-semibold text-xs sm:text-sm tracking-wide shadow-xl shadow-[#8B0000]/40 hover:shadow-[#8B0000]/60 transition-all duration-200 active:scale-95 flex items-center gap-2 cursor-pointer border border-[#A00000]/40 hover:scale-[1.02]"
             >
               <ArrowRight className="w-3.5 h-3.5" />
               <span>Réserver un studio</span>
@@ -139,7 +139,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   aria-label={thumb.alt}
                   className={`group relative shrink-0 aspect-[16/10] w-36 sm:w-44 md:w-48 lg:w-52 xl:w-56 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 snap-start cursor-pointer select-none bg-zinc-950 ${
                     isActive
-                      ? 'ring-2 ring-[#8E1B24] ring-offset-2 ring-offset-black scale-[1.03] shadow-xl shadow-[#5A0F14]/50'
+                      ? 'ring-2 ring-[#8B0000] ring-offset-2 ring-offset-black scale-[1.03] shadow-xl shadow-[#8B0000]/50'
                       : 'border border-zinc-800/80 hover:border-zinc-500 opacity-80 hover:opacity-100 hover:scale-[1.02]'
                   }`}
                 >

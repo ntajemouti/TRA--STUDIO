@@ -1,13 +1,12 @@
 import React from 'react';
 import { StudioSettings } from '../../types';
-import { Phone, MessageCircle, Instagram, Mail, MapPin, Lock, Sparkles, Navigation, ExternalLink } from 'lucide-react';
+import { Phone, MessageCircle, Instagram, Mail, MapPin, Navigation, ExternalLink } from 'lucide-react';
 
 interface FooterProps {
   settings: StudioSettings;
-  onOpenAdmin: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin }) => {
+export const Footer: React.FC<FooterProps> = ({ settings }) => {
   const waNumber = settings.whatsappNumber || '212660719968';
   const waUrl = `https://wa.me/${waNumber.replace(/[^0-9]/g, '')}`;
   const phone = settings.phone || '+212 660-719968';
@@ -126,19 +125,10 @@ export const Footer: React.FC<FooterProps> = ({ settings, onOpenAdmin }) => {
           </div>
         </div>
 
-        {/* Bottom Bar with Admin access */}
+        {/* Bottom Bar: Clean copyright without admin links */}
         <div className="pt-6 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-zinc-500">
           <p>© {new Date().getFullYear()} {settings.studioName || 'TRA Studio'}. Tous droits réservés.</p>
-
-          <button
-            type="button"
-            onClick={onOpenAdmin}
-            className="flex items-center gap-1.5 text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer py-1 px-2 rounded hover:bg-zinc-900/50"
-            title="Accès réservé à la direction du studio"
-          >
-            <Lock className="w-3 h-3 text-studio-red/70" />
-            <span>Espace Direction / Admin</span>
-          </button>
+          <p className="text-zinc-600">Studio de production & création audiovisuelle — Témara, Maroc</p>
         </div>
       </div>
     </footer>
