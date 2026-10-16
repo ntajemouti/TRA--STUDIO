@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StudioPackage } from '../../types';
 import { ScrollReveal } from '../ui/ScrollReveal';
 import {
@@ -18,26 +18,32 @@ export const Step2Package: React.FC<Step2PackageProps> = ({
   packages,
   onSelectService,
 }) => {
+  // Only ONE service card is active/lit in red at a time; moves with mouse hover
+  const [activeCardId, setActiveCardId] = useState<string>('srv-podcast-montage');
+
   return (
     <div className="w-full space-y-10 sm:space-y-14 animate-in fade-in duration-300 pb-10">
       
       {/* =========================================================================
-          SECTION HEADER: "Choisissez votre prestation" in prominent bold typography
+          SECTION HEADER: "Choisissez votre prestation" + Elegant Descriptive Paragraph
          ========================================================================= */}
       <ScrollReveal animation="fade-down" duration={600}>
-        <div className="text-center max-w-3xl mx-auto">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
           <h2 className="text-3xl sm:text-5xl lg:text-6xl font-display font-black tracking-wide text-white uppercase drop-shadow-md">
             Choisissez votre prestation
           </h2>
+          <p className="text-xs sm:text-sm text-zinc-400 font-normal leading-relaxed max-w-xl mx-auto">
+            Des formules transparentes et prêtes à tourner, conçues pour sublimer vos podcasts, interviews et créations vidéo dans un cadre professionnel insonorisé.
+          </p>
         </div>
       </ScrollReveal>
 
       {/* =========================================================================
-          PRICING CARDS: EXACT 3 FORMULAS FROM USER'S REFERENCE PHOTO
+          PRICING CARDS: DYNAMIC HOVER RED GLOW (Only hovered card lights up in red)
          ========================================================================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto items-stretch text-left">
         {packages.map((pkg, idx) => {
-          const isFeatured = pkg.badge?.includes('Meilleur Option') || pkg.popular;
+          const isActive = activeCardId === pkg.id;
 
           return (
             <ScrollReveal
@@ -48,16 +54,24 @@ export const Step2Package: React.FC<Step2PackageProps> = ({
               className="h-full flex"
             >
               <div
-                className={`relative w-full rounded-[24px] sm:rounded-3xl flex flex-col justify-between transition-all duration-300 overflow-hidden ${
-                  isFeatured
-                    ? 'bg-zinc-950 border-2 border-[#8B0000] shadow-2xl shadow-[#8B0000]/25'
-                    : 'bg-zinc-950 border border-zinc-800/90 shadow-xl'
+                onMouseEnter={() => setActiveCardId(pkg.id)}
+                onClick={() => setActiveCardId(pkg.id)}
+                className={`relative w-full rounded-[24px] sm:rounded-3xl flex flex-col justify-between transition-all duration-300 overflow-hidden cursor-pointer ${
+                  isActive
+                    ? 'bg-zinc-950 border-2 border-[#8B0000] shadow-[0_0_35px_rgba(139,0,0,0.32)] -translate-y-1.5 scale-[1.015]'
+                    : 'bg-zinc-950 border border-zinc-800/90 shadow-xl opacity-90 hover:opacity-100'
                 }`}
               >
-                {/* 1. Top Highlight Banner (⚡ Meilleur Option on Featured Card) */}
-                {isFeatured && (
-                  <div className="w-full bg-[#8B0000] text-white text-xs sm:text-sm font-extrabold uppercase tracking-wider py-2.5 px-4 flex items-center justify-center gap-1.5 shadow-md">
-                    <Zap className="w-4 h-4 fill-current text-white" />
+                {/* 1. Top Highlight Banner (Turns red ONLY when this card is active) */}
+                {pkg.badge && (
+                  <div
+                    className={`w-full text-xs sm:text-sm font-extrabold uppercase tracking-wider py-2.5 px-4 flex items-center justify-center gap-1.5 transition-colors duration-300 ${
+                      isActive
+                        ? 'bg-[#8B0000] text-white shadow-md'
+                        : 'bg-zinc-900 text-zinc-400 border-b border-zinc-800'
+                    }`}
+                  >
+                    <Zap className="w-4 h-4 fill-current" />
                     <span>Meilleur Option</span>
                   </div>
                 )}
@@ -68,7 +82,9 @@ export const Step2Package: React.FC<Step2PackageProps> = ({
                     
                     {/* Title & Subtitle */}
                     <div className="space-y-1">
-                      <h3 className="text-2xl font-black text-white tracking-tight">
+                      <h3 className={`text-2xl font-black tracking-tight transition-colors duration-300 ${
+                        isActive ? 'text-white' : 'text-zinc-200'
+                      }`}>
                         {pkg.name}
                       </h3>
                       <p className="text-xs text-zinc-400 font-medium leading-relaxed">
@@ -86,13 +102,16 @@ export const Step2Package: React.FC<Step2PackageProps> = ({
                       </span>
                     </div>
 
-                    {/* Réservez Action Button */}
+                    {/* Réservez Action Button (Red when card is active, dark when inactive) */}
                     <button
                       type="button"
-                      onClick={() => onSelectService(pkg.name)}
-                      className={`w-full py-3.5 px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95 cursor-pointer ${
-                        isFeatured
-                          ? 'bg-[#8B0000] hover:bg-[#A00000] text-white shadow-[#8B0000]/30 hover:shadow-[#8B0000]/50'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectService(pkg.name);
+                      }}
+                      className={`w-full py-3.5 px-4 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all duration-300 active:scale-95 cursor-pointer ${
+                        isActive
+                          ? 'bg-[#8B0000] hover:bg-[#A00000] text-white shadow-[#8B0000]/40'
                           : 'bg-[#1E232E] hover:bg-zinc-800 text-white border border-zinc-700/80 hover:border-zinc-600'
                       }`}
                     >
