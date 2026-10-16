@@ -56,16 +56,16 @@ export function App() {
 
       {/* Main Public Website Sections */}
       <main className="flex-1 w-full flex flex-col items-center justify-start">
+        {/* 1. Hero Showcase (Full Width Edge-to-Edge, Flush with Header) */}
+        <div id="hero" className="w-full">
+          <HeroSection
+            settings={settings}
+            onStartBooking={() => handleOpenBooking()}
+            onExploreStudios={() => handleScrollTo('univers')}
+          />
+        </div>
+
         <div className="w-full space-y-4">
-          
-          {/* 1. Hero Atmosphere Showcase with Carousel */}
-          <div id="hero">
-            <HeroSection
-              settings={settings}
-              onStartBooking={() => handleOpenBooking()}
-              onExploreStudios={() => handleScrollTo('univers')}
-            />
-          </div>
 
           {/* 2. “Our Studio Spaces” Section (Positioned immediately before Services) */}
           <StudioSpacesSection
