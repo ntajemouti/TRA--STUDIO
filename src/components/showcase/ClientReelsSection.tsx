@@ -153,17 +153,17 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
     });
   }, [currentIndex, visibleCount, pausedMap]);
 
-  // Auto-advance carousel every 10 seconds in an endless circular loop
+  // Auto-advance carousel every 6 seconds in an endless circular loop (KOUL 6 SECONDS)
   useEffect(() => {
-    if (modalReel || isHovered) return;
+    if (modalReel) return;
 
     const timer = setInterval(() => {
       setIsTransitioning(true);
       setCurrentIndex((prev) => prev + 1);
-    }, 10000);
+    }, 6000);
 
     return () => clearInterval(timer);
-  }, [modalReel, isHovered]);
+  }, [modalReel]);
 
   const handleNext = () => {
     setIsTransitioning(true);
@@ -176,7 +176,9 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
   };
 
   // Seamless snap when crossing boundary: imperceptibly normalizes index without rewind
-  const handleTransitionEnd = () => {
+  const handleTransitionEnd = (e?: React.TransitionEvent<HTMLDivElement>) => {
+    if (e && e.target !== e.currentTarget) return;
+
     // If we advanced past Set 2 into Set 3 (index >= 27)
     if (currentIndex >= TOTAL_ORIGINAL * 3) {
       setIsTransitioning(false);
@@ -330,7 +332,8 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
               <div
                 className="flex items-center"
                 style={{
-                  transform: `translate3d(-${currentIndex * (100 / visibleCount)}%, 0, 0)`,
+                  width: `${(DISPLAY_REELS.length * 100) / visibleCount}%`,
+                  transform: `translate3d(-${(currentIndex * 100) / DISPLAY_REELS.length}%, 0, 0)`,
                   transition: isTransitioning ? 'transform 650ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
                   willChange: 'transform',
                 }}
@@ -345,7 +348,7 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
                   return (
                     <div
                       key={item.uniqueKey}
-                      style={{ width: `${100 / visibleCount}%` }}
+                      style={{ width: `${100 / DISPLAY_REELS.length}%` }}
                       className="flex-shrink-0 px-1 sm:px-1.5 md:px-2 flex justify-center"
                     >
                       {/* Compact vertical 9:16 reel card */}
@@ -417,7 +420,7 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
               </div>
             </div>
 
-            {/* Pagination / 10s auto-advancing progress pills (9 original reels) */}
+            {/* Pagination / 6s auto-advancing progress pills (9 original reels) */}
             <div className="flex items-center justify-center gap-1.5 pt-3">
               {CLIENT_REELS.map((_, i) => (
                 <button
@@ -436,7 +439,7 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
 
             {/* Hint for mobile */}
             <div className="sm:hidden flex items-center justify-center gap-2 mt-2 text-zinc-500 text-[11px] font-medium">
-              <span>Reel {activeOriginalIndex + 1} sur {TOTAL_ORIGINAL} • Boucle continue toutes les 10s</span>
+              <span>Reel {activeOriginalIndex + 1} sur {TOTAL_ORIGINAL} • Boucle continue toutes les 6s</span>
             </div>
           </div>
         </ScrollReveal>
