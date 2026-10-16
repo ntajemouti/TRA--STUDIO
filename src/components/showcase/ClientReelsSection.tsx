@@ -249,7 +249,7 @@ export const ClientReelsSection: React.FC<ClientReelsSectionProps> = ({ onStartB
   };
 
   return (
-    <section id="reels" className="py-16 sm:py-24 bg-studio-bg text-white scroll-mt-20 relative overflow-hidden">
+    <section id="reels" className="pt-14 pb-8 sm:pt-20 sm:pb-10 bg-studio-bg text-white scroll-mt-20 relative overflow-hidden">
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-r from-studio-red/10 via-studio-red/15 to-studio-red/10 rounded-full blur-[160px] pointer-events-none" />
 
