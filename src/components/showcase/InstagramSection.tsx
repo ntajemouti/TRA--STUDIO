@@ -9,7 +9,9 @@ interface InstagramSectionProps {
 
 interface InstagramPost {
   id: string;
+  type: 'video' | 'image';
   image: string;
+  videoUrl?: string;
   alt: string;
   postUrl: string;
 }
@@ -17,49 +19,64 @@ interface InstagramPost {
 const INSTAGRAM_POSTS: InstagramPost[] = [
   {
     id: 'post-1',
+    type: 'video',
     image: '/instagram/tra-insta-1.jpg',
+    videoUrl: '/instagram/tra-reel-1.mp4',
     alt: 'TRA Studio x Podcast 3adi',
     postUrl: 'https://www.instagram.com/podcast3adi/reel/DeKYJPlB10S/',
   },
   {
     id: 'post-2',
+    type: 'video',
     image: '/instagram/tra-insta-2.jpg',
+    videoUrl: '/instagram/tra-reel-2.mp4',
     alt: 'TRA Studio clapperboard tournage cinéma',
     postUrl: 'https://www.instagram.com/tra__studio/reel/Dd6di1pAMFn/',
   },
   {
     id: 'post-3',
+    type: 'image',
     image: '/instagram/tra-insta-3.jpg',
     alt: 'TRA Studio x Douae Eddebbarh shooting cyclo',
     postUrl: 'https://www.instagram.com/douaeinmotion/p/DdzxLVQDBEs/',
   },
   {
     id: 'post-4',
+    type: 'video',
     image: '/instagram/tra-insta-4.jpg',
+    videoUrl: '/instagram/tra-reel-4.mp4',
     alt: 'TRA Studio The shoot BTS studio et éclairage',
     postUrl: 'https://www.instagram.com/tra_agency/reel/Dcokix0sLeC/',
   },
   {
     id: 'post-5',
+    type: 'video',
     image: '/instagram/tra-insta-5.jpg',
+    videoUrl: '/instagram/tra-reel-5.mp4',
     alt: 'TRA Studio cadrage caméra cinéma Tawfiq Bennani',
     postUrl: 'https://www.instagram.com/framesbytawfiq/reel/Dbk8gLzI0oO/',
   },
   {
     id: 'post-6',
+    type: 'video',
     image: '/instagram/tra-insta-6.jpg',
+    videoUrl: '/instagram/tra-reel-6.mp4',
     alt: 'TRA Studio interview et talk-show podcast',
     postUrl: 'https://www.instagram.com/tra__studio/reel/DZ487JUgykl/',
   },
   {
     id: 'post-7',
+    type: 'video',
     image: '/instagram/tra-insta-7.jpg',
+    videoUrl: '/instagram/tra-reel-7.mp4',
     alt: 'TRA Studio plateau rouge éclairage Godox et fauteuil jaune',
     postUrl: 'https://www.instagram.com/tra__studio/reel/DZPwhe1ASQf/',
   },
   {
     id: 'post-8',
+    type: 'video',
     image: '/instagram/tra-insta-8.jpg',
+    videoUrl: '/instagram/tra-reel-8.mp4',
     alt: 'TRA Studio session tournage setup bleu et régie DJ',
     postUrl: 'https://www.instagram.com/tra__studio/reel/DZPx6MAAbZL/',
   },
@@ -103,9 +120,11 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
 
         {/* =========================================================================
             8 LATEST INSTAGRAM POSTS:
-            - 4 columns x 2 rows on desktop (large cards, spans corner to corner)
+            - Reels play continuously on loop, muted without sound ("videowat kithrko bla sout")
+            - Static photos remain photos ("postes tabtin 3ibara 3la des photos")
+            - 4 columns x 2 rows on desktop (large edge-to-edge cards)
             - 2 columns on mobile
-            - Pure visual post with transparent white Instagram logo on hover (photo stays visible)
+            - Pure visual post with semi-transparent white Instagram logo on hover (content stays visible behind)
             - No likes, no views, no comments
             - Direct link to authentic Instagram post on click
            ========================================================================= */}
@@ -122,16 +141,35 @@ export const InstagramSection: React.FC<InstagramSectionProps> = ({ settings }) 
                 className="group relative aspect-square w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800/90 hover:border-white/50 shadow-xl hover:shadow-2xl hover:shadow-studio-red/20 transition-all duration-300 cursor-pointer"
                 title="Voir cette publication sur Instagram (@tra__studio)"
               >
-                {/* Pure Authentic Photo from @tra__studio */}
-                <img
-                  src={post.image}
-                  alt={post.alt}
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
-                  loading="lazy"
-                />
+                {/* Visual Media: Playing muted video for Reels OR static photo for image posts */}
+                {post.type === 'video' && post.videoUrl ? (
+                  <video
+                    ref={(el) => {
+                      if (el) {
+                        el.muted = true;
+                        if (el.paused) el.play().catch(() => {});
+                      }
+                    }}
+                    src={post.videoUrl}
+                    poster={post.image}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out pointer-events-none"
+                  />
+                ) : (
+                  <img
+                    src={post.image}
+                    alt={post.alt}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+                    loading="lazy"
+                  />
+                )}
 
-                {/* Semi-transparent white Instagram logo on hover (photo stays completely visible behind) */}
-                <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center select-none pointer-events-none">
+                {/* Semi-transparent white Instagram logo on hover (photo/video stays completely visible behind) */}
+                <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center select-none pointer-events-none z-10">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 backdrop-blur-md border border-white/50 flex items-center justify-center text-white shadow-2xl transition-transform duration-300 group-hover:scale-110">
                     <Instagram className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] stroke-[1.8]" />
                   </div>
