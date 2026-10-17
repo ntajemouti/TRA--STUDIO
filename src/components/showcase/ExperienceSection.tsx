@@ -2,57 +2,45 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import { ScrollReveal } from '../ui/ScrollReveal';
 
-interface Chapter {
+interface ChapterItem {
   id: string;
-  number: string;
-  tag: string;
   title: string;
   description: string;
   specs: string[];
   image: string;
   imageAlt: string;
-  badge: string;
   imagePosition: string;
 }
 
-const CHAPTERS: Chapter[] = [
+const CHAPTERS: ChapterItem[] = [
   {
-    id: 'chapter-podcast',
-    number: '01',
-    tag: 'ACOUSTIQUE & CAPTATION AUDIO',
+    id: 'podcast',
     title: "L'espace acoustique où chaque voix trouve sa pureté.",
     description:
       "Conçu spécifiquement pour l'enregistrement de podcasts, talk-shows et interviews haut de gamme, notre plateau insonorisé neutralise toute réverbération parasite. Équipé de microphones broadcast de référence et baigné d'une lumière chaude et feutrée, chaque échange se déroule dans une atmosphère intimiste et propice à la spontanéité.",
     specs: ['Traitement acoustique feutré', 'Micros broadcast Shure SM7B', 'Ambiance lumineuse chaleureuse'],
     image: '/images/why-choose/chapter-1-podcast.jpg',
     imageAlt: 'Plateau podcast professionnel avec sofa émeraude et microphones studio à TRA Studio',
-    badge: 'Plateau Podcast & Voix',
     imagePosition: 'object-center',
   },
   {
-    id: 'chapter-filming',
-    number: '02',
-    tag: 'TOURNAGE & LUMIÈRE CINÉMA',
+    id: 'filming',
     title: "Une scénographie visuelle pensée pour capter l'attention.",
     description:
       "Des formats courts percutants pour les réseaux sociaux aux capsules de marque et shootings éditoriaux, nos caméras 4K grand capteur et notre éclairage Godox modulable sculptent chaque plan avec une précision chirurgicale. Du cyclorama blanc épuré aux décors thématiques, votre identité visuelle s'exprime sans compromis.",
     specs: ['Captation multicaméra 4K', 'Projecteurs Godox à lumière modelée', 'Cyclorama & décors modulables'],
     image: '/images/why-choose/chapter-2-filming.jpg',
     imageAlt: 'Session de tournage audiovisuel et shooting avec éclairage Godox et caméra à TRA Studio',
-    badge: 'Plateau Audiovisuel 4K',
     imagePosition: 'object-[center_20%]',
   },
   {
-    id: 'chapter-postprod',
-    number: '03',
-    tag: 'RÉGIE TECHNIQUE & WORKFLOW IMMÉDIAT',
+    id: 'postprod',
     title: "Un accompagnement millimétré et des rushs prêts à l'emploi.",
     description:
       "De la régie de monitoring aux postes de montage dédiés, notre assistance technique veille en direct sur le calibrage sonore, l'étalonnage et le cadrage. À la fin de chaque séance, repartez sans attendre avec l'intégralité de vos fichiers haute résolution bruts ou montés, immédiatement exploitables pour vos diffusions.",
     specs: ['Monitoring son & image en direct', 'Livraison instantanée des rushs', 'Assistance technique continue'],
     image: '/images/why-choose/chapter-3-postprod.jpg',
     imageAlt: 'Poste de régie, monitoring et post-production avec vue sur plateau à TRA Studio',
-    badge: 'Régie & Post-Production',
     imagePosition: 'object-[center_42%]',
   },
 ];
@@ -62,7 +50,31 @@ export const ExperienceSection: React.FC = () => {
   const chapterRefs = useRef<(HTMLDivElement | null)[]>([]);
   const isScrollingManual = useRef<boolean>(false);
 
-  // Set up scroll-triggered chapter transitions on desktop using IntersectionObserver
+  // Mobile / Tablet touch swipe gesture tracking
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const deltaX = touchStartX.current - touchEndX.current;
+    if (deltaX > 45) {
+      // Swipe left -> Next
+      setActiveChapter((prev) => (prev + 1) % CHAPTERS.length);
+    } else if (deltaX < -45) {
+      // Swipe right -> Prev
+      setActiveChapter((prev) => (prev - 1 + CHAPTERS.length) % CHAPTERS.length);
+    }
+  };
+
+  // Scroll-triggered chapter transitions on desktop using IntersectionObserver
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -95,7 +107,7 @@ export const ExperienceSection: React.FC = () => {
     setActiveChapter(index);
     isScrollingManual.current = true;
     const target = chapterRefs.current[index];
-    if (target) {
+    if (target && window.innerWidth >= 1024) {
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     setTimeout(() => {
@@ -115,15 +127,10 @@ export const ExperienceSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12 sm:space-y-16 lg:space-y-20">
         
         {/* =========================================================================
-            SECTION HEADER: Minimalist, editorial and high-end
+            SECTION HEADER: Clean & Editorial
            ========================================================================= */}
         <ScrollReveal animation="fade-down" duration={700}>
-          <div className="max-w-3xl space-y-4">
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-[11px] font-mono tracking-widest text-zinc-300 uppercase shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
-              <span>EXCELLENCE AUDIOVISUELLE • TÉMARA</span>
-            </div>
-
+          <div className="max-w-3xl space-y-3 sm:space-y-4">
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-display font-black uppercase tracking-tight text-white leading-[1.05]">
               Pourquoi choisir <span className="text-studio-red">TRA Studio</span> ?
             </h2>
@@ -136,12 +143,13 @@ export const ExperienceSection: React.FC = () => {
 
         {/* =========================================================================
             DESKTOP COMPOSITION (lg+):
-            - Large cinematic photo with smooth image-mask reveals
-            - Clean aligned text column with 3 chapters & minimal progress indicator
+            - Pure cinematic image (no text, no numbers on top of the photo)
+            - Smooth image-mask reveal transition
+            - Clean aligned text column with the 3 big titles
            ========================================================================= */}
         <div className="hidden lg:grid lg:grid-cols-12 lg:gap-12 xl:gap-16 items-start relative">
           
-          {/* Left Column: Sticky Cinematic Image Viewport */}
+          {/* Left Column: Sticky Cinematic Image Viewport (Pure Photo, No text overlays) */}
           <div className="lg:col-span-7 sticky top-28">
             <div className="relative aspect-[16/11] xl:aspect-[4/3] w-full rounded-3xl overflow-hidden bg-zinc-950 border border-zinc-800/90 shadow-2xl shadow-black/90 group">
               {CHAPTERS.map((ch, idx) => {
@@ -169,21 +177,8 @@ export const ExperienceSection: React.FC = () => {
                       loading={idx === 0 ? 'eager' : 'lazy'}
                     />
 
-                    {/* Subtle cinematic gradient vignette */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10 pointer-events-none" />
-
-                    {/* Discreet bottom status badge */}
-                    <div className="absolute bottom-6 left-6 z-20 flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/65 backdrop-blur-md border border-white/15 text-xs text-zinc-200 shadow-xl">
-                      <span className="w-2 h-2 rounded-full bg-studio-red animate-pulse" />
-                      <span className="font-mono text-[11px] tracking-wider uppercase">{ch.badge}</span>
-                      <span className="text-zinc-600 font-mono">•</span>
-                      <span className="text-zinc-400 font-mono text-[11px]">TRA Studio 4K</span>
-                    </div>
-
-                    {/* Top right chapter label */}
-                    <div className="absolute top-6 right-6 z-20 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 font-mono text-xs text-white/90">
-                      <span>{ch.number} / 03</span>
-                    </div>
+                    {/* Pure subtle vignette - NO text, NO numbers on photo */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 pointer-events-none" />
                   </div>
                 );
               })}
@@ -193,45 +188,32 @@ export const ExperienceSection: React.FC = () => {
             <div className="h-6 w-3/4 mx-auto bg-gradient-to-r from-transparent via-studio-red/20 to-transparent blur-xl pointer-events-none -mt-3" />
           </div>
 
-          {/* Right Column: Editorial Text Area & Progress Indicator */}
+          {/* Right Column: Text Area with the 3 Big Titles Only */}
           <div className="lg:col-span-5 space-y-4 pt-2">
             
-            {/* Minimal Progress Indicator & Chapter Selector */}
-            <div className="sticky top-28 z-30 pb-6 mb-2 border-b border-zinc-800/80 bg-studio-bg/95 backdrop-blur-md flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {CHAPTERS.map((ch, idx) => (
-                  <button
-                    key={ch.id}
-                    type="button"
-                    onClick={() => handleSelectChapter(idx)}
-                    className="group flex items-center gap-2 py-1 cursor-pointer transition-all"
-                    title={`Passer au chapitre ${ch.number}`}
-                  >
-                    <span
-                      className={`font-mono text-xs font-bold tracking-wider transition-colors duration-300 ${
-                        activeChapter === idx ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'
-                      }`}
-                    >
-                      {ch.number}
-                    </span>
-                    <div className="h-[2px] w-8 xl:w-11 bg-zinc-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-studio-red transition-all duration-500 ease-out"
-                        style={{
-                          width: activeChapter === idx ? '100%' : activeChapter > idx ? '100%' : '0%',
-                        }}
-                      />
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <span className="font-mono text-[11px] text-zinc-500 tracking-widest uppercase">
-                CH. 0{activeChapter + 1} / 03
-              </span>
+            {/* Minimalist Progress Bar (Slim Lines Only, No Numbers) */}
+            <div className="sticky top-28 z-30 pb-5 mb-2 border-b border-zinc-800/80 bg-studio-bg/95 backdrop-blur-md flex items-center gap-3">
+              {CHAPTERS.map((ch, idx) => (
+                <button
+                  key={ch.id}
+                  type="button"
+                  onClick={() => handleSelectChapter(idx)}
+                  className="flex-1 py-2 cursor-pointer transition-all group"
+                  aria-label={`Volet ${idx + 1}`}
+                >
+                  <div className="h-[3px] w-full bg-zinc-800 rounded-full overflow-hidden transition-colors group-hover:bg-zinc-700">
+                    <div
+                      className="h-full bg-studio-red transition-all duration-500 ease-out"
+                      style={{
+                        width: activeChapter === idx ? '100%' : activeChapter > idx ? '100%' : '0%',
+                      }}
+                    />
+                  </div>
+                </button>
+              ))}
             </div>
 
-            {/* 3 Vertically Arranged Chapters */}
+            {/* 3 Vertically Arranged Chapters (Big Titles Dominant) */}
             <div className="divide-y divide-zinc-900/60">
               {CHAPTERS.map((ch, idx) => {
                 const isActive = activeChapter === idx;
@@ -243,25 +225,18 @@ export const ExperienceSection: React.FC = () => {
                       chapterRefs.current[idx] = el;
                     }}
                     onClick={() => handleSelectChapter(idx)}
-                    className={`py-12 xl:py-16 transition-all duration-500 cursor-pointer select-none ${
+                    className={`py-10 xl:py-14 transition-all duration-500 cursor-pointer select-none ${
                       isActive
                         ? 'opacity-100 translate-x-0'
                         : 'opacity-40 hover:opacity-75 translate-x-1'
                     }`}
                   >
-                    {/* Chapter Header: Number & Tag */}
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="font-mono text-xs font-bold text-studio-red tracking-wider">
-                        CHAPITRE {ch.number}
-                      </span>
-                      <span className="h-px w-6 bg-zinc-800" />
-                      <span className="text-[11px] font-mono tracking-[0.2em] uppercase text-zinc-400">
-                        {ch.tag}
-                      </span>
-                    </div>
-
-                    {/* Headline */}
-                    <h3 className="text-2xl xl:text-3xl font-display font-black text-white uppercase tracking-tight leading-tight mb-4">
+                    {/* Big Title ONLY (Clean, bold, impactful) */}
+                    <h3
+                      className={`text-2xl xl:text-3xl font-display font-black uppercase tracking-tight leading-tight mb-4 transition-colors duration-300 ${
+                        isActive ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'
+                      }`}
+                    >
                       {ch.title}
                     </h3>
 
@@ -287,67 +262,117 @@ export const ExperienceSection: React.FC = () => {
         </div>
 
         {/* =========================================================================
-            MOBILE NATURAL VERTICAL LAYOUT (< lg):
-            - No sticky locks, natural fluid scrolling
-            - Each chapter displays its cinematic photo followed by elegant text
+            MOBILE & TABLET VERSION (< lg):
+            - Single cinematic photo container with the EXACT SAME image-mask reveal!
+            - Touch swipe support on photo (swipe left/right)
+            - Clean minimalist dash progress lines
+            - 3 Big Titles below (tap to switch photo and expand details)
+            - Pure photo with NO numbers, NO text overlay!
            ========================================================================= */}
-        <div className="lg:hidden space-y-16 sm:space-y-20 pt-4">
-          {CHAPTERS.map((ch, idx) => (
-            <ScrollReveal key={ch.id} animation="fade-up" delay={idx * 80}>
-              <div className="space-y-6">
-                {/* Large Cinematic Photo Container */}
-                <div className="relative aspect-[16/10] w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-zinc-950 border border-zinc-800/90 shadow-2xl shadow-black/80">
+        <div className="lg:hidden space-y-6 pt-2">
+          
+          {/* 1. Single Cinematic Photo Viewport with Mask Reveal Transition */}
+          <div
+            className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-zinc-950 border border-zinc-800/90 shadow-2xl shadow-black/90 select-none cursor-grab active:cursor-grabbing"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {CHAPTERS.map((ch, idx) => {
+              const isActive = activeChapter === idx;
+              return (
+                <div
+                  key={ch.id}
+                  className={`absolute inset-0 w-full h-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    isActive
+                      ? 'opacity-100 scale-100 pointer-events-auto z-10'
+                      : 'opacity-0 scale-[1.05] pointer-events-none z-0'
+                  }`}
+                  style={{
+                    clipPath: isActive
+                      ? 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)'
+                      : 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)',
+                    transition:
+                      'clip-path 750ms cubic-bezier(0.16, 1, 0.3, 1), transform 900ms cubic-bezier(0.16, 1, 0.3, 1), opacity 600ms ease-out',
+                  }}
+                >
                   <img
                     src={ch.image}
                     alt={ch.imageAlt}
                     className={`w-full h-full object-cover ${ch.imagePosition}`}
-                    loading="lazy"
+                    loading={idx === 0 ? 'eager' : 'lazy'}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
 
-                  {/* Corner Badge */}
-                  <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/65 backdrop-blur-md border border-white/15 text-[11px] text-zinc-200 font-mono shadow-lg">
-                    <span className="w-1.5 h-1.5 rounded-full bg-studio-red animate-pulse" />
-                    <span>{ch.badge}</span>
-                  </div>
-
-                  <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 font-mono text-[11px] text-white/90">
-                    <span>{ch.number} / 03</span>
-                  </div>
+                  {/* Pure subtle vignette - NO text, NO numbers on photo */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 pointer-events-none" />
                 </div>
+              );
+            })}
+          </div>
 
-                {/* Chapter Editorial Content */}
-                <div className="space-y-3 px-1">
-                  <div className="flex items-center gap-2.5">
-                    <span className="font-mono text-xs font-bold text-studio-red tracking-wider">
-                      CHAPITRE {ch.number}
-                    </span>
-                    <span className="h-px w-5 bg-zinc-800" />
-                    <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-zinc-400">
-                      {ch.tag}
-                    </span>
-                  </div>
+          {/* 2. Minimalist Progress Lines (Tap to switch) */}
+          <div className="flex items-center gap-2.5 px-1">
+            {CHAPTERS.map((ch, idx) => (
+              <button
+                key={ch.id}
+                type="button"
+                onClick={() => setActiveChapter(idx)}
+                className="flex-1 py-2 cursor-pointer transition-all"
+                aria-label={`Volet ${idx + 1}`}
+              >
+                <div className="h-[3px] w-full bg-zinc-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-studio-red transition-all duration-500 ease-out"
+                    style={{ width: activeChapter === idx ? '100%' : '0%' }}
+                  />
+                </div>
+              </button>
+            ))}
+          </div>
 
-                  <h3 className="text-xl sm:text-2xl font-display font-black text-white uppercase tracking-tight leading-snug">
+          {/* 3. The 3 Big Titles (Tap any title to trigger mask transition) */}
+          <div className="space-y-3">
+            {CHAPTERS.map((ch, idx) => {
+              const isActive = activeChapter === idx;
+              return (
+                <div
+                  key={ch.id}
+                  onClick={() => setActiveChapter(idx)}
+                  className={`p-4 sm:p-5 rounded-2xl transition-all duration-300 cursor-pointer border ${
+                    isActive
+                      ? 'bg-zinc-900/80 border-zinc-700/80 shadow-xl'
+                      : 'bg-zinc-900/25 border-zinc-900/60 hover:border-zinc-800 opacity-60 hover:opacity-90'
+                  }`}
+                >
+                  {/* Big Title ONLY */}
+                  <h3
+                    className={`text-xl sm:text-2xl font-display font-black uppercase tracking-tight leading-snug transition-colors duration-300 ${
+                      isActive ? 'text-white' : 'text-zinc-400'
+                    }`}
+                  >
                     {ch.title}
                   </h3>
 
-                  <p className="text-zinc-300 font-light text-xs sm:text-sm leading-relaxed">
-                    {ch.description}
-                  </p>
-
-                  <div className="space-y-1.5 pt-3 border-t border-zinc-900">
-                    {ch.specs.map((spec, sIdx) => (
-                      <div key={sIdx} className="flex items-center gap-2 text-xs text-zinc-300">
-                        <span className="w-1 h-1 rounded-full bg-studio-red flex-shrink-0" />
-                        <span>{spec}</span>
+                  {/* Expanded description & specs for active title */}
+                  {isActive && (
+                    <div className="space-y-3 pt-3 mt-2 border-t border-zinc-800/80 animate-in fade-in duration-300">
+                      <p className="text-zinc-300 font-light text-xs sm:text-sm leading-relaxed">
+                        {ch.description}
+                      </p>
+                      <div className="space-y-1.5 pt-1">
+                        {ch.specs.map((spec, sIdx) => (
+                          <div key={sIdx} className="flex items-center gap-2 text-xs text-zinc-300">
+                            <span className="w-1.5 h-1.5 rounded-full bg-studio-red flex-shrink-0" />
+                            <span>{spec}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </ScrollReveal>
-          ))}
+              );
+            })}
+          </div>
         </div>
 
         {/* =========================================================================
