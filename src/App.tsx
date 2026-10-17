@@ -101,7 +101,7 @@ export function App() {
 
           {/* 9. Frequently Asked Questions */}
           <div id="faq" className="scroll-mt-20">
-            <FaqSection />
+            <FaqSection onStartBooking={() => handleOpenBooking()} />
           </div>
 
           {/* 11. Location & Direct Access in Témara */}
