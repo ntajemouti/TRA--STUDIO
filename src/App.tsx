@@ -10,7 +10,6 @@ import { Step2Package } from './components/client/Step2Package';
 import { ClientReelsSection } from './components/showcase/ClientReelsSection';
 import { InstagramSection } from './components/showcase/InstagramSection';
 import { ExperienceSection } from './components/showcase/ExperienceSection';
-import { EquipmentSection } from './components/showcase/EquipmentSection';
 import { FaqSection } from './components/showcase/FaqSection';
 import { LocationSection } from './components/showcase/LocationSection';
 import { StudioBookingModal } from './components/client/StudioBookingModal';
@@ -100,12 +99,7 @@ export function App() {
             </div>
           </div>
 
-          {/* 9. Technical Equipment Showcase */}
-          <div id="equipment" className="scroll-mt-20">
-            <EquipmentSection />
-          </div>
-
-          {/* 10. Frequently Asked Questions */}
+          {/* 9. Frequently Asked Questions */}
           <div id="faq" className="scroll-mt-20">
             <FaqSection />
           </div>
