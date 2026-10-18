@@ -121,13 +121,6 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ onStartBooking }) => {
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent pointer-events-none" />
-                
-                {/* Subtle caption */}
-                <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[11px] font-mono text-zinc-300">
-                  <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
-                  <span>Plateau en direct • Témara</span>
-                </div>
               </div>
             </ScrollReveal>
 
