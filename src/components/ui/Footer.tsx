@@ -161,7 +161,7 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
               <span>Contact & Réservations</span>
             </h4>
 
-            <ul className="space-y-4 text-sm pt-1">
+            <ul className="space-y-3.5 text-sm pt-1">
               {/* WhatsApp direct */}
               <li>
                 <a
@@ -171,25 +171,19 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
                   className="inline-flex items-center gap-3 text-zinc-300 hover:text-white transition-colors group cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 text-studio-red shrink-0 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider group-hover:text-zinc-300">
-                    WhatsApp :
-                  </span>
-                  <span className="font-semibold text-white group-hover:text-studio-red transition-colors">
-                    {phone}
+                  <span className="font-medium text-white group-hover:text-studio-red transition-colors">
+                    WhatsApp
                   </span>
                 </a>
               </li>
 
-              {/* Téléphone / Numéro */}
+              {/* Téléphone / Numéro direct */}
               <li>
                 <a
                   href={`tel:${phone}`}
                   className="inline-flex items-center gap-3 text-zinc-300 hover:text-white transition-colors group cursor-pointer"
                 >
                   <Phone className="w-4 h-4 text-studio-red shrink-0 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider group-hover:text-zinc-300">
-                    Téléphone :
-                  </span>
                   <span className="font-semibold text-white group-hover:text-studio-red transition-colors">
                     {phone}
                   </span>
@@ -205,25 +199,19 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
                   className="inline-flex items-center gap-3 text-zinc-300 hover:text-white transition-colors group cursor-pointer"
                 >
                   <Instagram className="w-4 h-4 text-studio-red shrink-0 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider group-hover:text-zinc-300">
-                    Instagram :
-                  </span>
-                  <span className="font-semibold text-white group-hover:text-studio-red transition-colors">
+                  <span className="font-medium text-white group-hover:text-studio-red transition-colors">
                     @{igHandle}
                   </span>
                 </a>
               </li>
 
-              {/* Gmail / E-mail */}
+              {/* Gmail / E-mail direct */}
               <li>
                 <a
                   href={`mailto:${email}`}
                   className="inline-flex items-center gap-3 text-zinc-300 hover:text-white transition-colors group cursor-pointer"
                 >
                   <Mail className="w-4 h-4 text-studio-red shrink-0 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider group-hover:text-zinc-300">
-                    E-mail :
-                  </span>
                   <span className="font-medium text-zinc-300 group-hover:text-white transition-colors text-xs sm:text-sm">
                     {email}
                   </span>
