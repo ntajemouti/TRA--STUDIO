@@ -7,6 +7,7 @@ import {
   MessageCircle,
   Instagram,
   Phone,
+  Mail,
   Navigation,
   Clock,
   ArrowUp,
@@ -29,6 +30,7 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
     'Bonjour TRA Studio, je souhaite obtenir des informations sur vos prestations et disponibilités.'
   )}`;
   const phone = settings?.phone || '+212 660-719968';
+  const email = settings?.email || 'Tawfiqbennani@tra-studio.com';
   const igUrl =
     settings?.instagramUrl || 'https://www.instagram.com/tra__studio?igsi=MThkb3NqdzBmODVuYQ==';
   const igHandle = settings?.instagramHandle || 'tra__studio';
@@ -65,7 +67,7 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
       id="contact"
       className="w-full bg-zinc-950 text-zinc-300 border-t border-zinc-900/90 relative overflow-hidden scroll-mt-10"
     >
-      {/* Subtle ambient red/zinc glow in the footer background */}
+      {/* Subtle ambient red glow in the footer background */}
       <div className="absolute top-0 right-1/3 w-96 h-96 bg-studio-red/4 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 left-10 w-80 h-80 bg-zinc-800/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -73,15 +75,15 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12 relative z-10">
         
         {/* =========================================================================
-            3-PART BALANCED EDITORIAL LAYOUT (Desktop) / STACKED (Mobile)
-            - Left: Studio Identity & Navigation
-            - Middle: Contact Details (WhatsApp, Tel, Instagram, Address)
-            - Right: Compact Studio Photo + Map Preview Card
+            3-COLUMN EDITORIAL LAYOUT:
+            - Col 1: Studio Identity (Logo, Description, Navigation)
+            - Col 2: Simple Contact Links (WhatsApp, Num, Instagram, Gmail, Address - no cadres/boxes)
+            - Col 3: Maps Only (No photo, clean Google Maps embed + open link)
            ========================================================================= */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-10 xl:gap-14 pb-14 border-b border-zinc-900/90 items-start">
           
           {/* =========================================================================
-              LEFT SIDE: TRA STUDIO IDENTITY & NAVIGATION
+              COLUMN 1: TRA STUDIO IDENTITY & NAVIGATION
              ========================================================================= */}
           <div className="lg:col-span-4 space-y-6">
             {/* Official Logo */}
@@ -150,7 +152,8 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
           </div>
 
           {/* =========================================================================
-              MIDDLE: CONTACT DETAILS (WhatsApp, Tel, Instagram, Address)
+              COLUMN 2: SIMPLE CONTACT LINKS (NO CADRES / NO BOXES)
+              WhatsApp, Téléphone, Instagram, Gmail, Adresse & Itinéraire
              ========================================================================= */}
           <div className="lg:col-span-4 space-y-4">
             <h4 className="text-xs font-mono uppercase tracking-widest text-white font-bold flex items-center gap-2">
@@ -158,90 +161,86 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
               <span>Contact & Réservations</span>
             </h4>
 
-            <div className="space-y-3">
-              {/* WhatsApp Item */}
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-studio-red/40 transition-all duration-200 group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-zinc-850 flex items-center justify-center text-studio-red group-hover:bg-studio-red group-hover:text-white transition-all">
-                    <MessageCircle className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wide block">
-                      WhatsApp direct
-                    </span>
-                    <span className="text-xs sm:text-sm font-semibold text-white group-hover:text-studio-red transition-colors">
-                      {phone}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[11px] font-mono text-zinc-400 group-hover:text-white transition-colors">
-                  Discuter ↗
-                </span>
-              </a>
+            <ul className="space-y-4 text-sm pt-1">
+              {/* WhatsApp direct */}
+              <li>
+                <a
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 text-zinc-300 hover:text-white transition-colors group cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4 text-studio-red shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider group-hover:text-zinc-300">
+                    WhatsApp :
+                  </span>
+                  <span className="font-semibold text-white group-hover:text-studio-red transition-colors">
+                    {phone}
+                  </span>
+                </a>
+              </li>
 
-              {/* Phone Item */}
-              <a
-                href={`tel:${phone}`}
-                className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 transition-all duration-200 group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-zinc-850 flex items-center justify-center text-zinc-300 group-hover:text-white transition-all">
-                    <Phone className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wide block">
-                      Appel direct
-                    </span>
-                    <span className="text-xs sm:text-sm font-semibold text-white">
-                      {phone}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[11px] font-mono text-zinc-400 group-hover:text-white transition-colors">
-                  Appeler
-                </span>
-              </a>
+              {/* Téléphone / Numéro */}
+              <li>
+                <a
+                  href={`tel:${phone}`}
+                  className="inline-flex items-center gap-3 text-zinc-300 hover:text-white transition-colors group cursor-pointer"
+                >
+                  <Phone className="w-4 h-4 text-studio-red shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider group-hover:text-zinc-300">
+                    Téléphone :
+                  </span>
+                  <span className="font-semibold text-white group-hover:text-studio-red transition-colors">
+                    {phone}
+                  </span>
+                </a>
+              </li>
 
-              {/* Instagram Item */}
-              <a
-                href={igUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 transition-all duration-200 group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-zinc-850 flex items-center justify-center text-zinc-300 group-hover:text-pink-400 transition-all">
-                    <Instagram className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wide block">
-                      Instagram officiel
-                    </span>
-                    <span className="text-xs sm:text-sm font-semibold text-white group-hover:text-zinc-200">
-                      @{igHandle}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[11px] font-mono text-zinc-400 group-hover:text-white transition-colors">
-                  Suivre ↗
-                </span>
-              </a>
+              {/* Instagram */}
+              <li>
+                <a
+                  href={igUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 text-zinc-300 hover:text-white transition-colors group cursor-pointer"
+                >
+                  <Instagram className="w-4 h-4 text-studio-red shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider group-hover:text-zinc-300">
+                    Instagram :
+                  </span>
+                  <span className="font-semibold text-white group-hover:text-studio-red transition-colors">
+                    @{igHandle}
+                  </span>
+                </a>
+              </li>
 
-              {/* Address with Itinerary Link */}
-              <div className="p-3.5 rounded-2xl bg-zinc-900/40 border border-zinc-800/60 space-y-2">
-                <div className="flex items-start gap-2.5">
+              {/* Gmail / E-mail */}
+              <li>
+                <a
+                  href={`mailto:${email}`}
+                  className="inline-flex items-center gap-3 text-zinc-300 hover:text-white transition-colors group cursor-pointer"
+                >
+                  <Mail className="w-4 h-4 text-studio-red shrink-0 group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider group-hover:text-zinc-300">
+                    E-mail :
+                  </span>
+                  <span className="font-medium text-zinc-300 group-hover:text-white transition-colors text-xs sm:text-sm">
+                    {email}
+                  </span>
+                </a>
+              </li>
+
+              {/* Adresse & Itinéraire */}
+              <li className="pt-2 border-t border-zinc-900/80 space-y-1.5">
+                <div className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 text-studio-red shrink-0 mt-0.5" />
                   <div className="text-xs text-zinc-300 leading-relaxed font-light">
                     {address}
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-1 border-t border-zinc-800/60 text-[11px]">
-                  <span className="inline-flex items-center gap-1.5 text-zinc-500 font-mono">
+
+                <div className="flex items-center justify-between pl-7 text-[11px] font-mono text-zinc-500 pt-1">
+                  <span className="inline-flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-zinc-600" />
                     <span>Lun – Sam : 10h – 18h</span>
                   </span>
@@ -249,59 +248,41 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
                     href={itineraryUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-studio-red hover:underline font-semibold font-mono"
+                    className="inline-flex items-center gap-1 text-studio-red hover:underline font-semibold"
                   >
                     <span>Voir l'itinéraire</span>
                     <Navigation className="w-3 h-3" />
                   </a>
                 </div>
-              </div>
-            </div>
+              </li>
+            </ul>
           </div>
 
           {/* =========================================================================
-              RIGHT SIDE: COMPACT LOCATION VISUAL — PHOTO + GOOGLE MAPS PREVIEW
-              Forms one coherent visual element with refined proportions & hover effect
+              COLUMN 3: GOOGLE MAPS ONLY (NO PHOTO)
+              Clean interactive Google Maps preview with direct open button
              ========================================================================= */}
           <div className="lg:col-span-4 space-y-4">
             <h4 className="text-xs font-mono uppercase tracking-widest text-white font-bold flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
-              <span>Le Studio à Témara</span>
+              <span>Localisation sur Google Maps</span>
             </h4>
 
-            {/* Coherent Visual Container: Photo + Map Preview */}
-            <div className="rounded-2xl sm:rounded-3xl overflow-hidden border border-zinc-800/90 bg-zinc-900/60 shadow-xl group hover:border-zinc-700 transition-all duration-300">
+            {/* Google Maps Container */}
+            <div className="rounded-2xl sm:rounded-3xl overflow-hidden border border-zinc-800/90 bg-zinc-950 shadow-xl group hover:border-zinc-700 transition-all duration-300">
               
-              {/* Top: Authentic Studio Photograph */}
-              <div className="relative aspect-[16/9] w-full overflow-hidden bg-zinc-950">
-                <img
-                  src="/catalog-photos/tra-studio-desktop-modern-official-logo.jpg"
-                  alt="Régie de production et plateau TRA Studio à Témara"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent pointer-events-none" />
-                
-                {/* Discreet Studio Badge */}
-                <div className="absolute top-3 left-3 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/10 text-[10px] font-mono text-zinc-300">
-                  <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
-                  <span>TRA Studio • Régie & Plateau</span>
-                </div>
-              </div>
-
-              {/* Middle: Compact Map Thumbnail / Preview */}
-              <div className="relative h-28 w-full border-t border-zinc-800/80 bg-zinc-950 overflow-hidden">
+              {/* Maps Embed */}
+              <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden bg-zinc-950">
                 <iframe
                   title="Carte Google Maps TRA Studio Témara"
                   src={mapEmbedSrc}
-                  className="w-full h-full border-0 filter contrast-105 opacity-80 group-hover:opacity-100 transition-opacity pointer-events-none"
+                  className="w-full h-full border-0 filter contrast-105 opacity-85 group-hover:opacity-100 transition-opacity"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-black/20 pointer-events-none" />
               </div>
 
               {/* Bottom Card Bar: Location Label & Direct Google Maps Action */}
-              <div className="p-3.5 bg-zinc-900/90 border-t border-zinc-800/80 flex items-center justify-between gap-3">
+              <div className="p-3.5 bg-zinc-900/95 border-t border-zinc-800/80 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">
                   <MapPin className="w-3.5 h-3.5 text-studio-red shrink-0" />
                   <span className="text-xs text-zinc-300 font-medium truncate">
@@ -331,7 +312,7 @@ export const Footer: React.FC<FooterProps> = ({ settings }) => {
            ========================================================================= */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-3 text-center sm:text-left">
-            <p>© {currentYear} TRA Studio — Tous droits réservés.</p>
+            <p>© {currentYear} {studioName} — Tous droits réservés.</p>
             <span className="hidden sm:inline text-zinc-700">•</span>
             <p className="text-zinc-500 font-light">Témara, Maroc</p>
           </div>
