@@ -11,7 +11,6 @@ import { ClientReelsSection } from './components/showcase/ClientReelsSection';
 import { InstagramSection } from './components/showcase/InstagramSection';
 import { ExperienceSection } from './components/showcase/ExperienceSection';
 import { FaqSection } from './components/showcase/FaqSection';
-import { LocationSection } from './components/showcase/LocationSection';
 import { StudioBookingModal } from './components/client/StudioBookingModal';
 
 export function App() {
@@ -104,18 +103,15 @@ export function App() {
             <FaqSection onStartBooking={() => handleOpenBooking()} />
           </div>
 
-          {/* 11. Location & Direct Access in Témara */}
-          <div id="contact" className="scroll-mt-20">
-            <div id="location">
-              <LocationSection settings={settings} />
-            </div>
-          </div>
-
         </div>
       </main>
 
-      {/* 12. Footer */}
-      <Footer settings={settings} />
+      {/* 10. Modern Editorial Footer with verified location and studio details */}
+      <Footer
+        settings={settings}
+        onSelectService={(serviceName) => handleOpenBooking(serviceName)}
+        onStartBooking={() => handleOpenBooking()}
+      />
 
       {/* 13. Direct Frontend-Only Booking Modal (Connected to WhatsApp) */}
       <StudioBookingModal
