@@ -1,21 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { StudioPackage, StudioSettings } from '../../types';
 import { STUDIO_WHATSAPP_NUMBER, buildWhatsAppBookingUrl } from '../../config/booking';
 import { addQuote } from '../../data/storage';
 import {
   X,
-  Calendar,
   Clock,
   User,
   Phone,
   Mail,
-  FileText,
   CheckCircle2,
   ExternalLink,
   AlertCircle,
-  Users,
-  MessageCircle,
-  Film,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 
 const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
@@ -29,7 +27,7 @@ const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' 
   </svg>
 );
 
-// PURE SERVICES LIST WITHOUT ANY PRICES
+// SERVICES (WITHOUT PRICES)
 export const STUDIO_SERVICES = [
   'Podcast Multicam 4K + Montage',
   'Podcast Tournage Brut (Rushs 4K)',
@@ -38,21 +36,36 @@ export const STUDIO_SERVICES = [
   'Projet Sur-Mesure / Production Complète',
 ];
 
+// DURATIONS ("kmiya we9t")
+const DURATION_OPTIONS = [
+  { id: '1h', label: '1 heure' },
+  { id: '2h', label: '2 heures' },
+  { id: '3h', label: '3 heures' },
+  { id: '4h', label: 'Demi-journée (4h)' },
+  { id: '8h', label: 'Journée complète (8h)' },
+  { id: 'custom', label: 'Sur-mesure' },
+];
+
+// TIME SLOTS ("we9t")
 const TIME_SLOTS = [
-  'Matinée (10:00 - 12:00)',
-  'Midi (12:00 - 14:00)',
-  'Après-midi (14:00 - 16:00)',
-  'Fin de journée (16:00 - 18:00)',
-  'Flexible / À convenir',
+  '10:00',
+  '11:00',
+  '12:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
+  '18:00',
+  'Flexible',
 ];
 
-const CONTACT_PREFERENCES = [
-  { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle },
-  { id: 'phone', label: 'Téléphone', icon: Phone },
-  { id: 'email', label: 'E-mail', icon: Mail },
+const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+const MONTHS_FR = [
+  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
 ];
 
-const DRAFT_STORAGE_KEY = 'tra_booking_draft_clean_2026';
+const DRAFT_STORAGE_KEY = 'tra_booking_draft_modern_cal_2026';
 
 interface StudioBookingModalProps {
   isOpen: boolean;
@@ -68,24 +81,30 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
   settings,
   initialService,
 }) => {
-  // DOM Mounting & Animation State
   const [isRendered, setIsRendered] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-
-  // View: 'form' | 'success'
   const [view, setView] = useState<'form' | 'success'>('form');
 
-  // Form Fields (WITHOUT ANY PRICES)
+  // Form Fields (WITHOUT PRICES)
   const [service, setService] = useState<string>(STUDIO_SERVICES[0]);
-  const [participants, setParticipants] = useState<string>('1-2 personnes');
-  const [preferredDate, setPreferredDate] = useState<string>('');
-  const [preferredTime, setPreferredTime] = useState<string>('Matinée (10:00 - 12:00)');
-  const [message, setMessage] = useState<string>('');
+  const [duration, setDuration] = useState<string>('2 heures');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(() => {
+    // Default to tomorrow
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    // If tomorrow is Sunday, skip to Monday
+    if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+    return d;
+  });
+  const [selectedTime, setSelectedTime] = useState<string>('14:00');
 
   const [fullName, setFullName] = useState<string>('');
   const [phone, setPhone] = useState<string>('+212 ');
   const [email, setEmail] = useState<string>('');
-  const [contactPref, setContactPref] = useState<string>('whatsapp');
+  const [message, setMessage] = useState<string>('');
+
+  // Calendar month navigation
+  const [viewMonth, setViewMonth] = useState<Date>(() => new Date());
 
   // Validation & Submission
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -95,7 +114,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
   const panelRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Restore draft from sessionStorage
+  // Restore draft
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
@@ -105,11 +124,10 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
         if (draft.phone) setPhone(draft.phone);
         if (draft.email) setEmail(draft.email);
         if (draft.service) setService(draft.service);
-        if (draft.participants) setParticipants(draft.participants);
-        if (draft.preferredDate) setPreferredDate(draft.preferredDate);
-        if (draft.preferredTime) setPreferredTime(draft.preferredTime);
+        if (draft.duration) setDuration(draft.duration);
+        if (draft.selectedTime) setSelectedTime(draft.selectedTime);
+        if (draft.selectedDateStr) setSelectedDate(new Date(draft.selectedDateStr));
         if (draft.message) setMessage(draft.message);
-        if (draft.contactPref) setContactPref(draft.contactPref);
       }
     } catch {
       // Ignore
@@ -125,19 +143,18 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
         phone,
         email,
         service,
-        participants,
-        preferredDate,
-        preferredTime,
+        duration,
+        selectedTime,
+        selectedDateStr: selectedDate ? selectedDate.toISOString() : null,
         message,
-        contactPref,
       };
       sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
     } catch {
       // Ignore
     }
-  }, [fullName, phone, email, service, participants, preferredDate, preferredTime, message, contactPref, view]);
+  }, [fullName, phone, email, service, duration, selectedTime, selectedDate, message, view]);
 
-  // Sync initialService prop
+  // Sync initialService
   useEffect(() => {
     if (initialService) {
       const matched = STUDIO_SERVICES.find(
@@ -153,7 +170,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
     }
   }, [initialService]);
 
-  // Handle Opening / Closing Animation Transitions
+  // Handle drawer open/close
   useEffect(() => {
     if (isOpen) {
       setIsRendered(true);
@@ -164,7 +181,6 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
         setIsAnimating(true);
       }, 20);
 
-      // Lock body scroll with padding compensation
       const originalOverflow = document.body.style.overflow;
       const originalPadding = document.body.style.paddingRight;
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -188,30 +204,93 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
     }
   }, [isOpen]);
 
-  // Keyboard navigation: Escape key closes modal
+  // Escape key handler
   useEffect(() => {
     if (!isOpen) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isRendered) return null;
+  // CALENDAR COMPUTATIONS
+  const calendarDays = useMemo(() => {
+    const year = viewMonth.getFullYear();
+    const month = viewMonth.getMonth();
 
-  const todayStr = new Date().toISOString().split('T')[0];
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+
+    // Monday-based week index (0 = Monday, 6 = Sunday)
+    let startDay = firstDayOfMonth.getDay() - 1;
+    if (startDay === -1) startDay = 6;
+
+    const daysCount = lastDayOfMonth.getDate();
+    const cells: (Date | null)[] = [];
+
+    // Empty cells before start of month
+    for (let i = 0; i < startDay; i++) {
+      cells.push(null);
+    }
+
+    // Days of month
+    for (let d = 1; d <= daysCount; d++) {
+      cells.push(new Date(year, month, d));
+    }
+
+    return cells;
+  }, [viewMonth]);
+
+  const isToday = (d: Date) => {
+    const today = new Date();
+    return (
+      d.getDate() === today.getDate() &&
+      d.getMonth() === today.getMonth() &&
+      d.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const isSelected = (d: Date) => {
+    if (!selectedDate) return false;
+    return (
+      d.getDate() === selectedDate.getDate() &&
+      d.getMonth() === selectedDate.getMonth() &&
+      d.getFullYear() === selectedDate.getFullYear()
+    );
+  };
+
+  const isPast = (d: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return d < today;
+  };
+
+  const isSunday = (d: Date) => d.getDay() === 0;
+
+  const handlePrevMonth = () => {
+    setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  // Human readable date format
+  const formattedSelectedDate = useMemo(() => {
+    if (!selectedDate) return 'Aucune date sélectionnée';
+    const dayName = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][selectedDate.getDay()];
+    return `${dayName} ${selectedDate.getDate()} ${MONTHS_FR[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`;
+  }, [selectedDate]);
+
+  if (!isRendered) return null;
 
   // Validation
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
 
     if (!fullName.trim()) {
-      newErrors.fullName = 'Le nom complet est obligatoire.';
+      newErrors.fullName = 'Votre nom complet est obligatoire.';
     }
 
     const cleanPhone = phone.replace(/[^0-9+]/g, '').trim();
@@ -223,11 +302,15 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
       newErrors.email = 'Veuillez saisir une adresse e-mail valide.';
     }
 
+    if (!selectedDate) {
+      newErrors.date = 'Veuillez sélectionner une date sur le calendrier.';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Form Submission
+  // Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -236,17 +319,20 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
     setErrors({});
 
     try {
-      const notesArray: string[] = [];
-      if (participants) notesArray.push(`👥 Intervenants : ${participants}`);
-      if (contactPref) {
-        const prefLabel = CONTACT_PREFERENCES.find((p) => p.id === contactPref)?.label || contactPref;
-        notesArray.push(`📲 Contact souhaité via : ${prefLabel}`);
+      const dateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : '';
+      const notesArray: string[] = [
+        `⏱️ Durée souhaitée : ${duration}`,
+        `📅 Date : ${formattedSelectedDate}`,
+        `⏰ Heure de début : ${selectedTime}`,
+      ];
+
+      if (message.trim()) {
+        notesArray.push(`💬 Précisions : ${message.trim()}`);
       }
-      if (message.trim()) notesArray.push(`💬 Détails : ${message.trim()}`);
 
       const fullMessage = notesArray.join('\n');
 
-      // 1. Persist quote locally
+      // 1. Persist quote
       try {
         addQuote({
           fullName: fullName.trim(),
@@ -254,8 +340,8 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
           email: email.trim(),
           instagram: '',
           projectType: service,
-          desiredDate: preferredDate || '',
-          peopleCount: participants.includes('5') ? 5 : participants.includes('3') ? 3 : 2,
+          desiredDate: dateStr,
+          peopleCount: 2,
           budgetRange: 'À définir',
           description: fullMessage,
           services: [service],
@@ -264,7 +350,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
         console.warn('Quote storage skipped', err);
       }
 
-      // 2. Generate WhatsApp Click-to-Chat URL
+      // 2. Build WhatsApp Click-to-Chat URL
       const targetNumber = settings?.whatsappNumber || STUDIO_WHATSAPP_NUMBER;
       const waUrl = buildWhatsAppBookingUrl(
         {
@@ -272,35 +358,28 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
           phone: phone.trim(),
           email: email.trim() || undefined,
           service,
-          preferredDate: preferredDate || undefined,
-          preferredTime: preferredTime || undefined,
-          message: fullMessage || undefined,
+          preferredDate: `${formattedSelectedDate} (${duration})`,
+          preferredTime: selectedTime,
+          message: fullMessage,
         },
         targetNumber
       );
 
       setGeneratedWhatsAppUrl(waUrl);
 
-      // Brief delay for smooth UX transition
       await new Promise((r) => setTimeout(r, 400));
-
-      // 3. Clear draft upon confirmed submission
       sessionStorage.removeItem(DRAFT_STORAGE_KEY);
-
-      // 4. Show refined confirmation
       setView('success');
 
-      // Auto-open WhatsApp if preference is WhatsApp
-      if (contactPref === 'whatsapp') {
-        try {
-          window.open(waUrl, '_blank', 'noopener,noreferrer');
-        } catch {
-          // Handled via confirmation view button
-        }
+      // Auto-open WhatsApp
+      try {
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+      } catch {
+        // Handled via confirmation view button
       }
     } catch {
       setErrors({
-        general: "Une erreur est survenue lors de l'envoi de votre demande. Veuillez réessayer.",
+        general: "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.",
       });
     } finally {
       setIsSubmitting(false);
@@ -329,7 +408,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
         aria-hidden="true"
       />
 
-      {/* 2. ORGANIZED SIDE DRAWER (Desktop) / FULL SCREEN (Mobile) */}
+      {/* 2. MODERN AIRY SIDE DRAWER (Desktop) / FULL SCREEN (Mobile) */}
       <div className="fixed inset-0 pointer-events-none flex justify-end">
         <div
           ref={panelRef}
@@ -338,24 +417,22 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* =========================================================================
-              HEADER
-             ========================================================================= */}
+          {/* HEADER (Sticky) */}
           <div className="flex-shrink-0 px-6 sm:px-8 pt-7 pb-5 border-b border-zinc-800/80 bg-[#09090b]/95 backdrop-blur-md relative z-20">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1.5 pr-6">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[10px] font-mono tracking-widest text-zinc-300 uppercase">
                   <span className="w-1.5 h-1.5 rounded-full bg-studio-red animate-pulse" />
-                  <span>TRA STUDIO • TÉMARA</span>
+                  <span>TRA Studio • Réservation</span>
                 </div>
                 <h2
                   id="booking-drawer-title"
                   className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight uppercase"
                 >
-                  Parlons de votre projet.
+                  Planifiez votre séance.
                 </h2>
-                <p className="text-xs sm:text-sm text-zinc-400 font-light leading-relaxed max-w-lg">
-                  Remplissez ce formulaire pour nous décrire vos ambitions créatives. Notre équipe étudie vos besoins et vous répond sous 24h avec une proposition sur-mesure.
+                <p className="text-xs sm:text-sm text-zinc-400 font-light leading-relaxed">
+                  Choisissez votre date, votre horaire et la durée souhaitée. Notre équipe technique prépare le plateau pour votre venue.
                 </p>
               </div>
 
@@ -371,9 +448,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
             </div>
           </div>
 
-          {/* =========================================================================
-              SCROLLABLE BODY: BEAUTIFULLY ORGANIZED FORM (NO PRICES)
-             ========================================================================= */}
+          {/* SCROLLABLE BODY */}
           <div
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6 scrollbar-thin scrollbar-thumb-zinc-800"
@@ -385,113 +460,180 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
               </div>
             )}
 
-            {/* FORM VIEW */}
             {view === 'form' && (
-              <form id="booking-clean-form" onSubmit={handleSubmit} className="space-y-6">
+              <form id="booking-modern-form" onSubmit={handleSubmit} className="space-y-6">
                 
                 {/* -------------------------------------------------------------
-                    SECTION 01: PRESTATION & CRÉNEAU
+                    1. TYPE DE PRESTATION (Clean & No Prices)
                    ------------------------------------------------------------- */}
-                <div className="space-y-4 p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80">
-                  <div className="flex items-center justify-between border-b border-zinc-800/70 pb-3">
-                    <span className="text-xs font-mono uppercase tracking-wider text-white font-bold flex items-center gap-2">
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-mono uppercase tracking-wider text-white font-bold flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
-                      <span>01. Prestation & Créneau</span>
-                    </span>
-                    <span className="text-[10px] font-mono text-zinc-500 uppercase">Configuration</span>
+                      <span>Prestation souhaitée <span className="text-studio-red">*</span></span>
+                    </label>
                   </div>
 
-                  {/* Prestation selection (Clean pills without any prices) */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-zinc-300">
-                      Type de prestation <span className="text-studio-red">*</span>
+                  <select
+                    value={service}
+                    onChange={(e) => setService(e.target.value)}
+                    className="w-full px-4 h-12 bg-zinc-900/90 border border-zinc-800 rounded-2xl text-xs sm:text-sm text-white focus:outline-none focus:border-studio-red transition-colors cursor-pointer"
+                  >
+                    {STUDIO_SERVICES.map((srv) => (
+                      <option key={srv} value={srv} className="bg-zinc-950 text-white py-1">
+                        {srv}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* -------------------------------------------------------------
+                    2. DURÉE DE LA SÉANCE ("kmiya we9t")
+                   ------------------------------------------------------------- */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-mono uppercase tracking-wider text-white font-bold flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-studio-red" />
+                      <span>Durée de la séance</span>
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {STUDIO_SERVICES.map((srv) => {
-                        const isSelected = service === srv;
+                    <span className="text-[11px] font-mono text-zinc-400">Temps réservé</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {DURATION_OPTIONS.map((opt) => {
+                      const isSelectedDuration = duration === opt.label;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setDuration(opt.label)}
+                          className={`py-2.5 px-3 rounded-xl border text-xs font-medium transition-all text-center cursor-pointer ${
+                            isSelectedDuration
+                              ? 'bg-studio-red border-studio-red text-white font-bold shadow-md shadow-studio-red/20'
+                              : 'bg-zinc-900/60 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* -------------------------------------------------------------
+                    3. CALENDRIER INTERACTIF & HORAIRE ("calendrier & we9t")
+                   ------------------------------------------------------------- */}
+                <div className="space-y-4 p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-white font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
+                      <span>Calendrier des séances</span>
+                    </div>
+
+                    {/* Month Switcher */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handlePrevMonth}
+                        className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                        aria-label="Mois précédent"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs font-mono font-bold text-white min-w-[120px] text-center">
+                        {MONTHS_FR[viewMonth.getMonth()]} {viewMonth.getFullYear()}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleNextMonth}
+                        className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                        aria-label="Mois suivant"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Calendar Grid */}
+                  <div className="space-y-2">
+                    {/* Days of week */}
+                    <div className="grid grid-cols-7 gap-1 text-center">
+                      {WEEKDAYS.map((w, idx) => (
+                        <span
+                          key={w}
+                          className={`text-[10px] font-mono uppercase font-bold py-1 ${
+                            idx === 6 ? 'text-zinc-600' : 'text-zinc-400'
+                          }`}
+                        >
+                          {w}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Day cells */}
+                    <div className="grid grid-cols-7 gap-1 text-center">
+                      {calendarDays.map((d, index) => {
+                        if (!d) {
+                          return <div key={`empty-${index}`} className="h-9" />;
+                        }
+
+                        const disabled = isPast(d) || isSunday(d);
+                        const active = isSelected(d);
+                        const current = isToday(d);
+
                         return (
                           <button
-                            key={srv}
+                            key={d.toISOString()}
                             type="button"
-                            onClick={() => setService(srv)}
-                            className={`p-3 rounded-xl border text-left text-xs transition-all flex items-center justify-between cursor-pointer ${
-                              isSelected
-                                ? 'bg-studio-red/10 border-studio-red text-white font-bold shadow-sm'
-                                : 'bg-zinc-950/70 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:text-white'
-                            }`}
+                            disabled={disabled}
+                            onClick={() => setSelectedDate(d)}
+                            className={`h-9 w-full rounded-xl text-xs font-mono transition-all flex items-center justify-center cursor-pointer select-none relative ${
+                              active
+                                ? 'bg-studio-red text-white font-bold shadow-lg shadow-studio-red/30 scale-105 z-10'
+                                : disabled
+                                ? 'text-zinc-700 cursor-not-allowed bg-transparent'
+                                : 'text-zinc-200 hover:bg-zinc-800 hover:text-white bg-zinc-950/60'
+                            } ${current && !active ? 'border border-studio-red/50 text-studio-red font-bold' : ''}`}
                           >
-                            <span className="truncate pr-2">{srv}</span>
-                            <span
-                              className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
-                                isSelected ? 'border-studio-red bg-studio-red' : 'border-zinc-700'
-                              }`}
-                            >
-                              {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                            </span>
+                            <span>{d.getDate()}</span>
                           </button>
                         );
                       })}
                     </div>
                   </div>
 
-                  {/* Date & Heure in clean 2-column grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    {/* Date */}
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-studio-red" />
-                        <span>Date souhaitée</span>
-                      </label>
-                      <input
-                        type="date"
-                        min={todayStr}
-                        value={preferredDate}
-                        onChange={(e) => setPreferredDate(e.target.value)}
-                        className="w-full px-3.5 h-11 bg-zinc-950/80 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors"
-                      />
-                    </div>
-
-                    {/* Heure */}
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-studio-red" />
-                        <span>Créneau horaire</span>
-                      </label>
-                      <select
-                        value={preferredTime}
-                        onChange={(e) => setPreferredTime(e.target.value)}
-                        className="w-full px-3.5 h-11 bg-zinc-950/80 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors cursor-pointer"
-                      >
-                        {TIME_SLOTS.map((t) => (
-                          <option key={t} value={t} className="bg-zinc-950 text-white">
-                            {t}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  {/* Selected Date Indicator Banner */}
+                  <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800/80 flex items-center justify-between text-xs">
+                    <span className="text-zinc-400 font-light">Date sélectionnée :</span>
+                    <span className="font-semibold text-white font-mono flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-studio-red" />
+                      <span>{formattedSelectedDate}</span>
+                    </span>
                   </div>
+                  {errors.date && (
+                    <span className="text-[11px] text-studio-red font-medium block">{errors.date}</span>
+                  )}
 
-                  {/* Participants */}
-                  <div className="space-y-1.5 pt-1">
-                    <label className="block text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-studio-red" />
-                      <span>Nombre d'intervenants / invités</span>
+                  {/* TIME SLOTS SELECTION ("we9t") */}
+                  <div className="space-y-2 pt-2 border-t border-zinc-800/70">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Heure de début souhaitée :
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {['1-2 personnes', '3-4 personnes', '5+ personnes'].map((count) => {
-                        const isSelected = participants === count;
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                      {TIME_SLOTS.map((slot) => {
+                        const isSlotSelected = selectedTime === slot;
                         return (
                           <button
-                            key={count}
+                            key={slot}
                             type="button"
-                            onClick={() => setParticipants(count)}
-                            className={`py-2 px-3 rounded-xl border text-xs font-medium transition-all text-center cursor-pointer ${
-                              isSelected
-                                ? 'bg-studio-red/15 border-studio-red text-white font-bold'
-                                : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'
+                            onClick={() => setSelectedTime(slot)}
+                            className={`py-2 px-2 rounded-xl border text-xs font-mono transition-all text-center cursor-pointer ${
+                              isSlotSelected
+                                ? 'bg-studio-red border-studio-red text-white font-bold shadow-md shadow-studio-red/20'
+                                : 'bg-zinc-950/70 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700'
                             }`}
                           >
-                            {count}
+                            {slot}
                           </button>
                         );
                       })}
@@ -500,21 +642,21 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
                 </div>
 
                 {/* -------------------------------------------------------------
-                    SECTION 02: VOS COORDONNÉES
+                    4. VOS COORDONNÉES (Clean, Uncluttered)
                    ------------------------------------------------------------- */}
-                <div className="space-y-4 p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80">
-                  <div className="flex items-center justify-between border-b border-zinc-800/70 pb-3">
+                <div className="space-y-3.5 pt-2">
+                  <div className="flex items-center justify-between border-b border-zinc-800/70 pb-2">
                     <span className="text-xs font-mono uppercase tracking-wider text-white font-bold flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
-                      <span>02. Vos Coordonnées</span>
+                      <span>Vos coordonnées</span>
                     </span>
-                    <span className="text-[10px] font-mono text-zinc-500 uppercase">* Obligatoire</span>
+                    <span className="text-[10px] font-mono text-zinc-500">* Obligatoire</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Nom complet */}
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-zinc-300">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-zinc-300">
                         Nom complet <span className="text-studio-red">*</span>
                       </label>
                       <div className="relative">
@@ -528,23 +670,23 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
                             setFullName(e.target.value);
                             if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: '' }));
                           }}
-                          className={`w-full pl-10 pr-3.5 h-11 bg-zinc-950/80 rounded-xl text-xs text-white placeholder-zinc-500 transition-colors focus:outline-none ${
+                          className={`w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-colors ${
                             errors.fullName
-                              ? 'border-2 border-studio-red focus:border-studio-red'
+                              ? 'border-2 border-studio-red'
                               : 'border border-zinc-800 focus:border-studio-red'
                           }`}
                         />
                       </div>
                       {errors.fullName && (
-                        <span className="text-[11px] text-studio-red font-medium block">
+                        <span className="text-[10px] text-studio-red font-medium block">
                           {errors.fullName}
                         </span>
                       )}
                     </div>
 
                     {/* Téléphone / WhatsApp */}
-                    <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold text-zinc-300">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-medium text-zinc-300">
                         Téléphone / WhatsApp <span className="text-studio-red">*</span>
                       </label>
                       <div className="relative">
@@ -558,24 +700,24 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
                             setPhone(e.target.value);
                             if (errors.phone) setErrors((prev) => ({ ...prev, phone: '' }));
                           }}
-                          className={`w-full pl-10 pr-3.5 h-11 bg-zinc-950/80 rounded-xl text-xs text-white placeholder-zinc-500 font-mono transition-colors focus:outline-none ${
+                          className={`w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 rounded-xl text-xs text-white placeholder-zinc-500 font-mono focus:outline-none transition-colors ${
                             errors.phone
-                              ? 'border-2 border-studio-red focus:border-studio-red'
+                              ? 'border-2 border-studio-red'
                               : 'border border-zinc-800 focus:border-studio-red'
                           }`}
                         />
                       </div>
                       {errors.phone && (
-                        <span className="text-[11px] text-studio-red font-medium block">
+                        <span className="text-[10px] text-studio-red font-medium block">
                           {errors.phone}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* E-mail */}
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-zinc-300">
+                  {/* E-mail (Optionnel) */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-medium text-zinc-300">
                       Adresse e-mail <span className="text-zinc-600 font-normal">(Optionnel)</span>
                     </label>
                     <div className="relative">
@@ -588,68 +730,28 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
                           setEmail(e.target.value);
                           if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
                         }}
-                        className={`w-full pl-10 pr-3.5 h-11 bg-zinc-950/80 rounded-xl text-xs text-white placeholder-zinc-600 transition-colors focus:outline-none ${
+                        className={`w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none transition-colors ${
                           errors.email
-                            ? 'border-2 border-studio-red focus:border-studio-red'
+                            ? 'border-2 border-studio-red'
                             : 'border border-zinc-800 focus:border-studio-red'
                         }`}
                       />
                     </div>
-                    {errors.email && (
-                      <span className="text-[11px] text-studio-red font-medium block">
-                        {errors.email}
-                      </span>
-                    )}
                   </div>
 
-                  {/* Canal de réponse préféré */}
-                  <div className="space-y-1.5 pt-1">
-                    <label className="block text-xs font-semibold text-zinc-300">
-                      Canal de réponse souhaité :
+                  {/* Message (Optionnel) */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-medium text-zinc-300">
+                      Précisions / Thématique du projet <span className="text-zinc-600 font-normal">(Optionnel)</span>
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {CONTACT_PREFERENCES.map((pref) => {
-                        const isSelected = contactPref === pref.id;
-                        const Icon = pref.icon;
-                        return (
-                          <button
-                            key={pref.id}
-                            type="button"
-                            onClick={() => setContactPref(pref.id)}
-                            className={`py-2 px-3 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                              isSelected
-                                ? 'bg-studio-red/15 border-studio-red text-white font-bold'
-                                : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'
-                            }`}
-                          >
-                            <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-studio-red' : 'text-zinc-500'}`} />
-                            <span>{pref.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <textarea
+                      rows={2}
+                      placeholder="Ex: Émission de 45 minutes, 2 micros nécessaires, montage rapide..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      className="w-full p-3 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors resize-none leading-relaxed font-light"
+                    />
                   </div>
-                </div>
-
-                {/* -------------------------------------------------------------
-                    SECTION 03: DÉTAILS DU PROJET (OPTIONNEL)
-                   ------------------------------------------------------------- */}
-                <div className="space-y-3 p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80">
-                  <div className="flex items-center justify-between border-b border-zinc-800/70 pb-3">
-                    <span className="text-xs font-mono uppercase tracking-wider text-white font-bold flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
-                      <span>03. Message / Détails (Optionnel)</span>
-                    </span>
-                    <FileText className="w-3.5 h-3.5 text-zinc-500" />
-                  </div>
-
-                  <textarea
-                    rows={3}
-                    placeholder="Précisez votre concept, nombre d'épisodes souhaités, ou besoins techniques spécifiques..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    className="w-full p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors resize-none leading-relaxed font-light"
-                  />
                 </div>
 
               </form>
@@ -657,7 +759,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
 
             {/* CONFIRMATION VIEW */}
             {view === 'success' && (
-              <div className="py-4 space-y-6 animate-in zoom-in-95 duration-300">
+              <div className="py-6 space-y-6 animate-in zoom-in-95 duration-300">
                 <div className="text-center space-y-3">
                   <div className="w-16 h-16 rounded-full bg-studio-red/15 border border-studio-red/40 text-studio-red flex items-center justify-center mx-auto shadow-xl shadow-studio-red/20">
                     <CheckCircle2 className="w-9 h-9" />
@@ -668,34 +770,19 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
                       Demande enregistrée
                     </span>
                     <h3 className="text-2xl font-black text-white uppercase tracking-tight">
-                      Votre demande est entre nos mains.
+                      Votre demande est transmise.
                     </h3>
                     <p className="text-xs sm:text-sm text-zinc-400 font-light leading-relaxed">
-                      Nous avons bien reçu votre projet. Notre équipe technique va vérifier la régie et vous répond sous 24h.
+                      L'équipe technique de TRA Studio vérifie la régie et vous répond sous 24h pour confirmer votre créneau.
                     </p>
                   </div>
                 </div>
 
-                {/* Status Notice */}
-                <div className="p-4 rounded-2xl bg-zinc-900/70 border border-zinc-800 space-y-2 text-xs">
-                  <div className="flex items-center gap-2 font-bold text-white uppercase text-[11px] tracking-wide">
-                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                    <span>Statut : En attente de validation</span>
-                  </div>
-                  <p className="text-zinc-400 font-light leading-relaxed">
-                    Un responsable de TRA Studio va étudier votre configuration et vous contactera via{' '}
-                    <strong className="text-white">
-                      {CONTACT_PREFERENCES.find((p) => p.id === contactPref)?.label || 'WhatsApp'}
-                    </strong>{' '}
-                    pour valider définitivement votre créneau et vos besoins de tournage.
-                  </p>
-                </div>
-
-                {/* Recap Card (Without prices) */}
-                <div className="p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 space-y-3 text-xs">
+                {/* Recap Card */}
+                <div className="p-5 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 space-y-3 text-xs">
                   <div className="border-b border-zinc-800 pb-2 flex items-center justify-between">
                     <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">
-                      Récapitulatif de votre demande :
+                      Récapitulatif de votre séance :
                     </span>
                     <span className="text-studio-red font-mono text-[10px] font-bold">
                       TRA STUDIO TÉMARA
@@ -704,8 +791,23 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-zinc-300">
                     <div>
-                      <span className="text-zinc-500 font-mono text-[10px] block">Service :</span>
+                      <span className="text-zinc-500 font-mono text-[10px] block">Prestation :</span>
                       <span className="text-white font-semibold">{service}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-zinc-500 font-mono text-[10px] block">Durée prévue :</span>
+                      <span className="text-studio-red font-semibold">{duration}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-zinc-500 font-mono text-[10px] block">Date :</span>
+                      <span className="text-white font-mono">{formattedSelectedDate}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-zinc-500 font-mono text-[10px] block">Heure :</span>
+                      <span className="text-white font-mono">{selectedTime}</span>
                     </div>
 
                     <div>
@@ -717,24 +819,10 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
                       <span className="text-zinc-500 font-mono text-[10px] block">Téléphone :</span>
                       <span className="text-white font-mono">{phone}</span>
                     </div>
-
-                    {preferredDate && (
-                      <div>
-                        <span className="text-zinc-500 font-mono text-[10px] block">Date & Heure :</span>
-                        <span className="text-white">{preferredDate} ({preferredTime})</span>
-                      </div>
-                    )}
-
-                    {email && (
-                      <div className="sm:col-span-2">
-                        <span className="text-zinc-500 font-mono text-[10px] block">E-mail :</span>
-                        <span className="text-white font-mono">{email}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                {/* Actions */}
                 <div className="space-y-3 pt-2">
                   <button
                     type="button"
@@ -758,9 +846,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
             )}
           </div>
 
-          {/* =========================================================================
-              DRAWER FOOTER (Sticky Action Bar for Form View)
-             ========================================================================= */}
+          {/* STICKY FOOTER (Action Bar) */}
           {view === 'form' && (
             <div className="flex-shrink-0 px-6 sm:px-8 py-5 border-t border-zinc-800/80 bg-[#09090b]/95 backdrop-blur-md flex items-center justify-between gap-4">
               <button
@@ -773,7 +859,7 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
 
               <button
                 type="submit"
-                form="booking-clean-form"
+                form="booking-modern-form"
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-2.5 px-7 py-3 rounded-full bg-studio-red hover:bg-studio-redHover disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-studio-red/25 transition-all cursor-pointer active:scale-95"
               >
