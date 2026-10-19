@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StudioPackage, StudioSettings } from '../../types';
 import { STUDIO_WHATSAPP_NUMBER, buildWhatsAppBookingUrl } from '../../config/booking';
+import { addQuote } from '../../data/storage';
 import {
   X,
   Calendar,
@@ -14,7 +15,10 @@ import {
   CheckCircle2,
   ExternalLink,
   AlertCircle,
-  Film,
+  Users,
+  Sparkles,
+  MessageCircle,
+  Check,
 } from 'lucide-react';
 
 const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
@@ -29,11 +33,62 @@ const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' 
 );
 
 export const DEFAULT_STUDIO_SERVICES = [
-  'Podcast + Montage (1500 Dhs/h)',
-  'Podcast Tournage Brut (1000 Dhs/h)',
-  'Reels + Montage (1900 Dhs/h)',
-  'Projet Sur-Mesure / Demande de Devis',
+  {
+    id: 'podcast-montage',
+    name: 'Podcast + Montage',
+    rate: '1500 DH/h',
+    badge: 'Populaire',
+    desc: 'Studio tout équipé, 3 caméras 4K, 2 micros Shure & monteur dédié inclus.',
+  },
+  {
+    id: 'podcast-brut',
+    name: 'Podcast Tournage Brut',
+    rate: '1000 DH/h',
+    badge: 'Essentiel',
+    desc: 'Captation multicam 4K avec opérateur studio, rushs audio & vidéo bruts remis sans montage.',
+  },
+  {
+    id: 'reels-montage',
+    name: 'Reels + Montage',
+    rate: '1900 DH/h',
+    badge: 'Réseaux Sociaux',
+    desc: 'Captation verticale intensive, jusqu’à 10 reels montés et sous-titrés.',
+  },
+  {
+    id: 'cyclorama-shooting',
+    name: 'Plateau Cyclorama & Shooting',
+    rate: 'Sur devis',
+    badge: 'Photo & Vidéo',
+    desc: 'Cyclorama blanc infini, éclairage broadcast et direction artistique.',
+  },
+  {
+    id: 'sur-mesure',
+    name: 'Projet Sur-Mesure / Demi-Journée',
+    rate: 'Devis sous 24h',
+    badge: 'Personnalisé',
+    desc: 'Production d’envergure, format institutionnel ou configuration de plateau spécifique.',
+  },
 ];
+
+const TIME_SLOTS = [
+  '10:00 (Matinée)',
+  '11:00 (Matinée)',
+  '12:00 (Midi)',
+  '14:00 (Après-midi)',
+  '15:00 (Après-midi)',
+  '16:00 (Après-midi)',
+  '17:00 (Fin de journée)',
+  '18:00 (Soirée)',
+  'Flexible / À convenir',
+];
+
+const CONTACT_PREFERENCES = [
+  { id: 'whatsapp', label: 'WhatsApp', hint: 'Réponse rapide & échange direct', icon: MessageCircle },
+  { id: 'phone', label: 'Téléphone', hint: 'Appel vocal direct', icon: Phone },
+  { id: 'email', label: 'E-mail', hint: 'Devis formel & proposition détaillée', icon: Mail },
+];
+
+const DRAFT_STORAGE_KEY = 'tra_booking_draft_2026';
 
 interface StudioBookingModalProps {
   isOpen: boolean;
@@ -50,56 +105,125 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
   packages,
   initialService,
 }) => {
-  // Available services list derived from website packages or default list
-  const availableServices = packages && packages.length > 0
-    ? [...packages.map((p) => p.name), 'Projet Sur-Mesure / Demande de Devis']
-    : DEFAULT_STUDIO_SERVICES;
+  // DOM Mounting state for smooth transition
+  const [isRendered, setIsRendered] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // View state: 'form' | 'success'
-  const [view, setView] = useState<'form' | 'success'>('form');
+  // Step state: 1 = Project & Dates, 2 = Client Information, 3 = Confirmation
+  const [step, setStep] = useState<1 | 2 | 3>(1);
 
-  // Form Fields
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('+212 ');
-  const [email, setEmail] = useState('');
-  const [service, setService] = useState<string>(availableServices[0]);
-  const [preferredDate, setPreferredDate] = useState('');
-  const [preferredTime, setPreferredTime] = useState('');
-  const [message, setMessage] = useState('');
+  // Form Fields with draft restoration
+  const [service, setService] = useState<string>(DEFAULT_STUDIO_SERVICES[0].name);
+  const [participants, setParticipants] = useState<string>('1-2 personnes');
+  const [preferredDate, setPreferredDate] = useState<string>('');
+  const [preferredTime, setPreferredTime] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
 
-  // Validation
-  const [errors, setErrors] = useState<{ fullName?: string; phone?: string; general?: string }>({});
-  const [generatedWhatsAppUrl, setGeneratedWhatsAppUrl] = useState('');
+  const [fullName, setFullName] = useState<string>('');
+  const [phone, setPhone] = useState<string>('+212 ');
+  const [email, setEmail] = useState<string>('');
+  const [contactPref, setContactPref] = useState<string>('whatsapp');
 
-  // Synchronize initial service when modal opens
+  // Submission & Validation States
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [generatedWhatsAppUrl, setGeneratedWhatsAppUrl] = useState<string>('');
+
+  const panelRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Restore draft from sessionStorage on initial load
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
+      if (raw) {
+        const draft = JSON.parse(raw);
+        if (draft.fullName) setFullName(draft.fullName);
+        if (draft.phone) setPhone(draft.phone);
+        if (draft.email) setEmail(draft.email);
+        if (draft.service) setService(draft.service);
+        if (draft.participants) setParticipants(draft.participants);
+        if (draft.preferredDate) setPreferredDate(draft.preferredDate);
+        if (draft.preferredTime) setPreferredTime(draft.preferredTime);
+        if (draft.message) setMessage(draft.message);
+        if (draft.contactPref) setContactPref(draft.contactPref);
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+  }, []);
+
+  // Save draft on change (when not in success view)
+  useEffect(() => {
+    if (step === 3) return;
+    try {
+      const draft = {
+        fullName,
+        phone,
+        email,
+        service,
+        participants,
+        preferredDate,
+        preferredTime,
+        message,
+        contactPref,
+      };
+      sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [fullName, phone, email, service, participants, preferredDate, preferredTime, message, contactPref, step]);
+
+  // Synchronize initialService prop when opening
   useEffect(() => {
     if (initialService) {
-      const match = availableServices.find(
-        (s) =>
-          s.toLowerCase().includes(initialService.toLowerCase()) ||
-          initialService.toLowerCase().includes(s.toLowerCase().split(' ')[0])
+      const matched = DEFAULT_STUDIO_SERVICES.find((s) =>
+        s.name.toLowerCase().includes(initialService.toLowerCase()) ||
+        initialService.toLowerCase().includes(s.name.toLowerCase())
       );
-      if (match) {
-        setService(match);
+      if (matched) {
+        setService(matched.name);
       } else {
         setService(initialService);
       }
-    } else if (availableServices.length > 0) {
-      setService(availableServices[0]);
     }
+  }, [initialService]);
 
+  // Handle Opening / Closing Animation Transitions
+  useEffect(() => {
     if (isOpen) {
-      setView('form');
-      setErrors({});
-    }
-  }, [initialService, isOpen]);
+      setIsRendered(true);
+      const timer = setTimeout(() => {
+        setIsAnimating(true);
+      }, 20);
 
-  // Lock body scroll and listen for Escape key
+      // Lock body scroll with padding compensation
+      const originalOverflow = document.body.style.overflow;
+      const originalPadding = document.body.style.paddingRight;
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+      document.body.style.overflow = 'hidden';
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+
+      return () => {
+        clearTimeout(timer);
+        document.body.style.overflow = originalOverflow;
+        document.body.style.paddingRight = originalPadding;
+      };
+    } else {
+      setIsAnimating(false);
+      const timer = setTimeout(() => {
+        setIsRendered(false);
+      }, 450);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Keyboard navigation: Escape key closes modal
   useEffect(() => {
     if (!isOpen) return;
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -108,68 +232,145 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  // Reset scroll on step changes
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [step]);
 
-  // Today's date in YYYY-MM-DD for datepicker min attribute
+  if (!isRendered) return null;
+
+  // Today string for date input min
   const todayStr = new Date().toISOString().split('T')[0];
 
-  // Handle Form Submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newErrors: { fullName?: string; phone?: string; general?: string } = {};
+  // Validation for Step 1
+  const validateStep1 = () => {
+    const newErrors: { [key: string]: string } = {};
+    if (!service) {
+      newErrors.service = 'Veuillez sélectionner un type de prestation.';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
+  // Validation for Step 2
+  const validateStep2 = () => {
+    const newErrors: { [key: string]: string } = {};
     if (!fullName.trim()) {
-      newErrors.fullName = 'Le nom complet est obligatoire.';
+      newErrors.fullName = 'Votre nom complet est obligatoire.';
     }
 
     const cleanPhone = phone.replace(/[^0-9+]/g, '').trim();
     if (!cleanPhone || cleanPhone === '+212' || cleanPhone.length < 8) {
-      newErrors.phone = 'Un numéro de téléphone valide est obligatoire.';
+      newErrors.phone = 'Un numéro de téléphone ou WhatsApp valide est obligatoire.';
     }
 
-    if (Object.keys(newErrors).length > 0) {
-      newErrors.general = 'Veuillez renseigner tous les champs obligatoires (Nom complet et Numéro de téléphone).';
-      setErrors(newErrors);
-      return;
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      newErrors.email = 'Veuillez renseigner une adresse e-mail valide.';
     }
 
-    setErrors({});
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-    // Target WhatsApp number from central configuration or settings
-    const targetNumber = settings?.whatsappNumber || STUDIO_WHATSAPP_NUMBER;
-
-    // Generate Click-to-Chat URL
-    const url = buildWhatsAppBookingUrl(
-      {
-        fullName: fullName.trim(),
-        phone: phone.trim(),
-        email: email.trim() || undefined,
-        service,
-        preferredDate: preferredDate || undefined,
-        preferredTime: preferredTime || undefined,
-        message: message.trim() || undefined,
-      },
-      targetNumber
-    );
-
-    setGeneratedWhatsAppUrl(url);
-    setView('success');
-
-    // Automatically trigger opening WhatsApp in a new tab
-    try {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch {
-      // Browser popup blocked; user can click the prominent button in the success view
+  const handleNextToStep2 = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateStep1()) {
+      setStep(2);
     }
   };
 
-  const handleOpenWhatsAppManually = () => {
+  const handleBackToStep1 = () => {
+    setErrors({});
+    setStep(1);
+  };
+
+  // Final Form Submission Handler
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateStep2()) return;
+
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      // 1. Prepare structured notes
+      const notesArray: string[] = [];
+      if (participants) notesArray.push(`👥 Intervenants : ${participants}`);
+      if (contactPref) {
+        const prefLabel = CONTACT_PREFERENCES.find((p) => p.id === contactPref)?.label || contactPref;
+        notesArray.push(`📲 Préférence contact : ${prefLabel}`);
+      }
+      if (message.trim()) notesArray.push(`💬 Détails : ${message.trim()}`);
+
+      const fullMessage = notesArray.join('\n');
+
+      // 2. Persist in local storage for quote tracking
+      try {
+        addQuote({
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+          instagram: '',
+          projectType: service,
+          desiredDate: preferredDate || '',
+          peopleCount: participants.includes('5') ? 5 : participants.includes('3') ? 3 : 2,
+          budgetRange: 'Standard',
+          description: fullMessage,
+          services: [service],
+        });
+      } catch (err) {
+        console.warn('Quote storage skipped', err);
+      }
+
+      // 3. Generate official WhatsApp Click-to-Chat URL
+      const targetNumber = settings?.whatsappNumber || STUDIO_WHATSAPP_NUMBER;
+      const waUrl = buildWhatsAppBookingUrl(
+        {
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          email: email.trim() || undefined,
+          service,
+          preferredDate: preferredDate || undefined,
+          preferredTime: preferredTime || undefined,
+          message: fullMessage || undefined,
+        },
+        targetNumber
+      );
+
+      setGeneratedWhatsAppUrl(waUrl);
+
+      // Simulate a brief refined network check for smooth cinematic feel
+      await new Promise((r) => setTimeout(r, 600));
+
+      // 4. Clear draft from session storage upon confirmed transmission
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+
+      // 5. Switch to Confirmation Step
+      setStep(3);
+
+      // Try opening WhatsApp automatically if preferred
+      if (contactPref === 'whatsapp') {
+        try {
+          window.open(waUrl, '_blank', 'noopener,noreferrer');
+        } catch {
+          // Popup blocked; user can click the button on the confirmation screen
+        }
+      }
+    } catch {
+      setErrors({
+        general: "Une erreur est survenue lors de l'enregistrement de votre demande. Veuillez réessayer ou nous contacter directement.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenWhatsAppDirectly = () => {
     if (generatedWhatsAppUrl) {
       window.open(generatedWhatsAppUrl, '_blank', 'noopener,noreferrer');
     }
@@ -179,341 +380,598 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="booking-modal-title"
-      className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 md:p-6 overflow-y-auto animate-in fade-in duration-200"
-      onClick={onClose}
+      aria-labelledby="booking-drawer-title"
+      className="fixed inset-0 z-50 overflow-hidden"
     >
+      {/* 1. CINEMATIC DARK BACKDROP */}
       <div
-        className="relative w-full max-w-xl bg-[#0A0A0A] border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl my-auto text-left space-y-6 transition-all duration-300"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-5 right-5 w-9 h-9 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-studio-red flex items-center justify-center transition-all cursor-pointer z-10"
-          aria-label="Fermer la fenêtre de réservation"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        className={`fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity duration-500 ease-out cursor-pointer ${
+          isAnimating ? 'opacity-100' : 'opacity-0'
+        }`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-        {/* =========================================================================
-            VIEW 1: BOOKING & QUOTE FORM
-           ========================================================================= */}
-        {view === 'form' && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Modal Header */}
-            <div className="space-y-1.5 pr-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-studio-red/15 border border-studio-red/30 text-studio-red text-[11px] font-bold uppercase tracking-wider">
-                <Calendar className="w-3.5 h-3.5" />
-                <span>Réservation & Devis Studio</span>
+      {/* 2. EDITORIAL BOOKING SIDE DRAWER (Desktop) / FULL-SCREEN INTERFACE (Mobile) */}
+      <div className="fixed inset-0 pointer-events-none flex justify-end">
+        <div
+          ref={panelRef}
+          className={`pointer-events-auto relative w-full max-w-2xl h-full bg-[#09090b] text-white border-l border-zinc-800/90 shadow-2xl flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isAnimating ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* =========================================================================
+              DRAWER HEADER (Sticky at Top)
+             ========================================================================= */}
+          <div className="flex-shrink-0 px-6 sm:px-8 pt-7 pb-5 border-b border-zinc-800/80 bg-[#09090b]/95 backdrop-blur-md relative z-20">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1.5 pr-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[10px] font-mono tracking-widest text-zinc-300 uppercase">
+                  <span className="w-1.5 h-1.5 rounded-full bg-studio-red animate-pulse" />
+                  <span>TRA Studio • Témara</span>
+                </div>
+                <h2
+                  id="booking-drawer-title"
+                  className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight uppercase"
+                >
+                  Parlons de votre projet.
+                </h2>
+                <p className="text-xs sm:text-sm text-zinc-400 font-light leading-relaxed max-w-lg">
+                  Remplissez ce formulaire pour nous décrire vos ambitions créatives. Notre équipe étudie vos besoins et vous répond sous 24h avec une proposition sur-mesure.
+                </p>
               </div>
-              <h3 id="booking-modal-title" className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
-                Réservez votre séance
-              </h3>
-              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-normal">
-                Indiquez vos besoins ci-dessous pour être mis en relation directe avec l'équipe TRA Studio via WhatsApp.
-              </p>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fermer le formulaire de réservation"
+                className="w-9 h-9 rounded-full bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-studio-red/60 text-zinc-400 hover:text-white flex items-center justify-center transition-all cursor-pointer flex-shrink-0 select-none"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            {/* Validation Alert Box if required fields are missing */}
+            {/* Discreet 2-Step Progress Indicator (Visible in Form Steps) */}
+            {step !== 3 && (
+              <div className="pt-5 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className={`flex-1 flex items-center gap-2 text-xs font-mono pb-2 border-b-2 transition-all text-left cursor-pointer ${
+                    step === 1
+                      ? 'border-studio-red text-white font-bold'
+                      : 'border-zinc-800 text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  <span className="w-5 h-5 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center text-[10px] font-bold">
+                    01
+                  </span>
+                  <span>Projet & Créneau</span>
+                </button>
+
+                <div
+                  className={`flex-1 flex items-center gap-2 text-xs font-mono pb-2 border-b-2 transition-all text-left ${
+                    step === 2
+                      ? 'border-studio-red text-white font-bold'
+                      : 'border-zinc-800 text-zinc-500'
+                  }`}
+                >
+                  <span className="w-5 h-5 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center text-[10px] font-bold">
+                    02
+                  </span>
+                  <span>Vos Coordonnées</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* =========================================================================
+              DRAWER SCROLLABLE BODY
+             ========================================================================= */}
+          <div
+            ref={scrollContainerRef}
+            className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6 scrollbar-thin scrollbar-thumb-zinc-800"
+          >
+            {/* Error Banner */}
             {errors.general && (
-              <div className="p-3.5 rounded-2xl bg-studio-red/20 border border-studio-red text-zinc-100 flex items-start gap-2.5 text-xs animate-in shake duration-200">
+              <div className="p-4 rounded-2xl bg-studio-red/10 border border-studio-red/40 text-xs text-zinc-200 flex items-start gap-3">
                 <AlertCircle className="w-4 h-4 text-studio-red shrink-0 mt-0.5" />
-                <span className="font-medium leading-relaxed">{errors.general}</span>
+                <p className="leading-relaxed">{errors.general}</p>
               </div>
             )}
 
-            {/* FORM INPUTS */}
-            <div className="space-y-4">
-              
-              {/* Row 1: Nom complet (Required) & Téléphone (Required) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* =========================================================================
+                STEP 1: PROJECT DETAILS & PREFERRED DATES
+               ========================================================================= */}
+            {step === 1 && (
+              <form id="booking-step-1" onSubmit={handleNextToStep2} className="space-y-6">
                 
-                {/* 1. Nom complet — Required */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300">
-                    Nom complet <span className="text-studio-red font-black">*</span>
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ex: Yasmine Alaoui"
-                      value={fullName}
-                      onChange={(e) => {
-                        setFullName(e.target.value);
-                        if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: undefined, general: undefined }));
-                      }}
-                      className={`w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 rounded-xl text-xs text-white placeholder-zinc-500 transition-colors focus:outline-none ${
-                        errors.fullName
-                          ? 'border-2 border-studio-red focus:border-studio-red'
-                          : 'border border-zinc-800 focus:border-studio-red'
-                      }`}
-                    />
+                {/* GROUP: TYPE DE PRESTATION */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-mono uppercase tracking-wider text-zinc-300 font-bold flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
+                      <span>Type de prestation <span className="text-studio-red">*</span></span>
+                    </label>
+                    <span className="text-[11px] text-zinc-500 font-mono">Options disponibles</span>
                   </div>
-                  {errors.fullName && (
-                    <span className="text-[10px] text-studio-red font-semibold block">{errors.fullName}</span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {DEFAULT_STUDIO_SERVICES.map((srv) => {
+                      const isSelected = service === srv.name;
+                      return (
+                        <div
+                          key={srv.id}
+                          onClick={() => setService(srv.name)}
+                          className={`p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between text-left relative ${
+                            isSelected
+                              ? 'bg-zinc-900/90 border-studio-red shadow-lg shadow-studio-red/10'
+                              : 'bg-zinc-900/40 border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900/60'
+                          }`}
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span
+                                className={`text-xs font-bold tracking-tight ${
+                                  isSelected ? 'text-white' : 'text-zinc-200'
+                                }`}
+                              >
+                                {srv.name}
+                              </span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700/60">
+                                {srv.rate}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-zinc-400 font-light leading-relaxed">
+                              {srv.desc}
+                            </p>
+                          </div>
+
+                          <div className="pt-2 flex items-center justify-between text-[10px] font-mono">
+                            <span className="text-zinc-500">{srv.badge}</span>
+                            <span
+                              className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
+                                isSelected
+                                  ? 'border-studio-red bg-studio-red text-white'
+                                  : 'border-zinc-700 bg-transparent'
+                              }`}
+                            >
+                              {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {errors.service && (
+                    <span className="text-[11px] text-studio-red font-semibold block">{errors.service}</span>
                   )}
                 </div>
 
-                {/* 2. Numéro de téléphone — Required */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300">
-                    Numéro de téléphone <span className="text-studio-red font-black">*</span>
+                {/* GROUP: PARTICIPANTS */}
+                <div className="space-y-2">
+                  <label className="text-xs font-mono uppercase tracking-wider text-zinc-300 font-bold flex items-center gap-2">
+                    <Users className="w-3.5 h-3.5 text-studio-red" />
+                    <span>Nombre de participants / intervenants</span>
                   </label>
-                  <div className="relative">
-                    <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="tel"
-                      required
-                      placeholder="+212 6 XX XX XX XX"
-                      value={phone}
-                      onChange={(e) => {
-                        setPhone(e.target.value);
-                        if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined, general: undefined }));
-                      }}
-                      className={`w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 rounded-xl text-xs text-white placeholder-zinc-500 font-mono transition-colors focus:outline-none ${
-                        errors.phone
-                          ? 'border-2 border-studio-red focus:border-studio-red'
-                          : 'border border-zinc-800 focus:border-studio-red'
-                      }`}
-                    />
-                  </div>
-                  {errors.phone && (
-                    <span className="text-[10px] text-studio-red font-semibold block">{errors.phone}</span>
-                  )}
-                </div>
-
-              </div>
-
-              {/* Row 2: Service souhaité (Required dropdown) */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-300">
-                  Service souhaité <span className="text-studio-red font-black">*</span>
-                </label>
-                <div className="relative">
-                  <Film className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <select
-                    value={service}
-                    onChange={(e) => setService(e.target.value)}
-                    className="w-full pl-10 pr-4 h-11 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors cursor-pointer"
-                  >
-                    {availableServices.map((srv, idx) => (
-                      <option key={idx} value={srv} className="bg-[#0A0A0A] text-white py-1">
-                        {srv}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Row 3: Date souhaitée & Heure souhaitée (Both Optional) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                
-                {/* 4. Date souhaitée — Optional */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    Date souhaitée <span className="text-zinc-600 font-normal">(Optionnel)</span>
-                  </label>
-                  <div className="relative">
-                    <Calendar className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="date"
-                      min={todayStr}
-                      value={preferredDate}
-                      onChange={(e) => setPreferredDate(e.target.value)}
-                      className="w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors"
-                    />
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {['1 personne', '2 personnes', '3-4 personnes', '5+ personnes'].map((count) => {
+                      const isSelected = participants === count;
+                      return (
+                        <button
+                          key={count}
+                          type="button"
+                          onClick={() => setParticipants(count)}
+                          className={`py-2 px-3 rounded-xl border text-xs font-medium transition-all text-center cursor-pointer ${
+                            isSelected
+                              ? 'bg-studio-red/15 border-studio-red text-white font-bold'
+                              : 'bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'
+                          }`}
+                        >
+                          {count}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* 5. Heure souhaitée — Optional */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    Heure souhaitée <span className="text-zinc-600 font-normal">(Optionnel)</span>
+                {/* GROUP: PREFERRED DATE & TIME SLOT */}
+                <div className="space-y-2.5">
+                  <label className="text-xs font-mono uppercase tracking-wider text-zinc-300 font-bold flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-studio-red" />
+                    <span>Créneau & Date souhaitée</span>
                   </label>
-                  <div className="relative">
-                    <Clock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="Ex: 14:00 ou Matinée"
-                      value={preferredTime}
-                      onChange={(e) => setPreferredTime(e.target.value)}
-                      className="w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors"
-                    />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Date picker */}
+                    <div className="space-y-1">
+                      <span className="text-[11px] text-zinc-400 font-mono block">Date idéale :</span>
+                      <div className="relative">
+                        <Calendar className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="date"
+                          min={todayStr}
+                          value={preferredDate}
+                          onChange={(e) => setPreferredDate(e.target.value)}
+                          className="w-full pl-10 pr-3.5 h-11 bg-zinc-900/80 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Time slot picker */}
+                    <div className="space-y-1">
+                      <span className="text-[11px] text-zinc-400 font-mono block">Créneau horaire :</span>
+                      <div className="relative">
+                        <Clock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <select
+                          value={preferredTime}
+                          onChange={(e) => setPreferredTime(e.target.value)}
+                          className="w-full pl-10 pr-3.5 h-11 bg-zinc-900/80 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:border-studio-red transition-colors cursor-pointer"
+                        >
+                          <option value="">Sélectionner un horaire...</option>
+                          {TIME_SLOTS.map((t) => (
+                            <option key={t} value={t} className="bg-zinc-950 text-white">
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
                   </div>
+                  <p className="text-[10px] text-zinc-500 font-mono">
+                    Ouvert du Lundi au Samedi de 10h00 à 18h00. Les dates sont validées selon la disponibilité de la régie.
+                  </p>
                 </div>
 
-              </div>
-
-              {/* Row 4: Adresse e-mail (Optional) */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  Adresse e-mail <span className="text-zinc-600 font-normal">(Optionnel)</span>
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="email"
-                    placeholder="contact@exemple.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-3.5 h-11 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors"
-                  />
-                </div>
-              </div>
-
-              {/* Row 5: Message / Détails supplémentaires (Optional) */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  Message / Détails supplémentaires <span className="text-zinc-600 font-normal">(Optionnel)</span>
-                </label>
-                <div className="relative">
-                  <FileText className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3 pointer-events-none" />
+                {/* GROUP: DESCRIPTION DU PROJET */}
+                <div className="space-y-2">
+                  <label className="text-xs font-mono uppercase tracking-wider text-zinc-300 font-bold flex items-center gap-2">
+                    <FileText className="w-3.5 h-3.5 text-studio-red" />
+                    <span>Description courte de votre projet</span>
+                  </label>
                   <textarea
-                    rows={2}
-                    placeholder="Précisez votre projet, nombre d'intervenants, besoins de montage..."
+                    rows={3}
+                    placeholder="Ex: Enregistrement d'une série de 4 épisodes de podcast avec 2 invités. Besoin de cadrage multicam et d'étalonnage rapide..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className="w-full pl-10 pr-3.5 py-2.5 bg-zinc-900/90 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors resize-none"
+                    className="w-full p-3.5 bg-zinc-900/80 border border-zinc-800 rounded-2xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-studio-red transition-colors resize-none leading-relaxed font-light"
                   />
                 </div>
-              </div>
 
-            </div>
+              </form>
+            )}
 
-            {/* Submit Button: “Continuer sur WhatsApp” */}
-            <div className="space-y-2 pt-2">
-              <button
-                type="submit"
-                className="w-full h-13 rounded-2xl bg-studio-red hover:bg-studio-redHover text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-studio-red/30 transition-all cursor-pointer group active:scale-[0.98]"
-              >
-                <WhatsAppIcon className="w-5 h-5 fill-current" />
-                <span>Continuer sur WhatsApp</span>
-                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-              </button>
-              
-              <p className="text-center text-[11px] text-zinc-500">
-                La demande sera pré-remplie dans WhatsApp. Vous confirmerez l'envoi en direct avec le studio.
-              </p>
-            </div>
-          </form>
-        )}
-
-        {/* =========================================================================
-            VIEW 2: SUCCESS STYLE MESSAGE & WHATSAPP REDIRECTION CONFIRMATION
-           ========================================================================= */}
-        {view === 'success' && (
-          <div className="space-y-6 py-2 animate-in zoom-in-95 duration-200">
-            {/* Top Success Badge */}
-            <div className="text-center space-y-3">
-              <div className="w-16 h-16 rounded-full bg-studio-red/15 border border-studio-red/40 text-studio-red flex items-center justify-center mx-auto shadow-xl shadow-studio-red/20">
-                <CheckCircle2 className="w-9 h-9" />
-              </div>
-
-              <div className="space-y-1.5 max-w-md mx-auto">
-                <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
-                  Demande préparée avec succès !
-                </h3>
-                {/* EXACT REQUIRED MESSAGE */}
-                <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-medium">
-                  Votre demande est prête. Envoyez le message sur WhatsApp pour finaliser votre demande.
-                </p>
-              </div>
-            </div>
-
-            {/* Summary Card */}
-            <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 space-y-3 text-xs text-zinc-300">
-              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2.5">
-                <span className="font-bold text-white uppercase text-[11px] tracking-wider">
-                  Récapitulatif de votre demande :
-                </span>
-                <span className="px-2 py-0.5 rounded bg-studio-red/20 text-studio-red font-mono text-[10px] font-bold">
-                  Prêt à envoyer
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div>
-                  <span className="text-zinc-500 font-semibold block text-[11px]">Nom complet :</span>
-                  <span className="text-white font-bold">{fullName}</span>
+            {/* =========================================================================
+                STEP 2: CLIENT INFORMATION & CONTACT PREFERENCE
+               ========================================================================= */}
+            {step === 2 && (
+              <form id="booking-step-2" onSubmit={handleFinalSubmit} className="space-y-6">
+                
+                {/* Summary Pill of selected service from Step 1 */}
+                <div className="p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2.5">
+                    <Sparkles className="w-4 h-4 text-studio-red shrink-0" />
+                    <div>
+                      <span className="text-zinc-400 block text-[11px] font-mono">Service sélectionné :</span>
+                      <span className="font-bold text-white">{service}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleBackToStep1}
+                    className="text-[11px] font-mono text-studio-red hover:underline cursor-pointer"
+                  >
+                    Modifier
+                  </button>
                 </div>
 
-                <div>
-                  <span className="text-zinc-500 font-semibold block text-[11px]">Téléphone :</span>
-                  <span className="text-white font-mono font-bold">{phone}</span>
+                {/* CLIENT INFORMATION FIELDS */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-mono uppercase tracking-wider text-white font-bold flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-studio-red" />
+                      <span>Coordonnées du responsable</span>
+                    </label>
+                    <span className="text-[11px] text-zinc-500 font-mono">* Champs obligatoires</span>
+                  </div>
+
+                  {/* Nom complet */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Nom complet <span className="text-studio-red">*</span>
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: Yasmine Alaoui"
+                        value={fullName}
+                        onChange={(e) => {
+                          setFullName(e.target.value);
+                          if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: '' }));
+                        }}
+                        className={`w-full pl-10 pr-3.5 h-11 bg-zinc-900/80 rounded-xl text-xs text-white placeholder-zinc-500 transition-colors focus:outline-none ${
+                          errors.fullName
+                            ? 'border-2 border-studio-red focus:border-studio-red'
+                            : 'border border-zinc-800 focus:border-studio-red'
+                        }`}
+                      />
+                    </div>
+                    {errors.fullName && (
+                      <span className="text-[11px] text-studio-red font-medium block">{errors.fullName}</span>
+                    )}
+                  </div>
+
+                  {/* Numéro de téléphone / WhatsApp */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Numéro de téléphone / WhatsApp <span className="text-studio-red">*</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="tel"
+                        required
+                        placeholder="+212 6 XX XX XX XX"
+                        value={phone}
+                        onChange={(e) => {
+                          setPhone(e.target.value);
+                          if (errors.phone) setErrors((prev) => ({ ...prev, phone: '' }));
+                        }}
+                        className={`w-full pl-10 pr-3.5 h-11 bg-zinc-900/80 rounded-xl text-xs text-white placeholder-zinc-500 font-mono transition-colors focus:outline-none ${
+                          errors.phone
+                            ? 'border-2 border-studio-red focus:border-studio-red'
+                            : 'border border-zinc-800 focus:border-studio-red'
+                        }`}
+                      />
+                    </div>
+                    {errors.phone && (
+                      <span className="text-[11px] text-studio-red font-medium block">{errors.phone}</span>
+                    )}
+                  </div>
+
+                  {/* Adresse e-mail */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Adresse e-mail <span className="text-zinc-600 font-normal">(Recommandé pour le devis)</span>
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="email"
+                        placeholder="contact@exemple.com"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
+                        }}
+                        className={`w-full pl-10 pr-3.5 h-11 bg-zinc-900/80 rounded-xl text-xs text-white placeholder-zinc-600 transition-colors focus:outline-none ${
+                          errors.email
+                            ? 'border-2 border-studio-red focus:border-studio-red'
+                            : 'border border-zinc-800 focus:border-studio-red'
+                        }`}
+                      />
+                    </div>
+                    {errors.email && (
+                      <span className="text-[11px] text-studio-red font-medium block">{errors.email}</span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="sm:col-span-2">
-                  <span className="text-zinc-500 font-semibold block text-[11px]">Service souhaité :</span>
-                  <span className="text-studio-red font-bold">{service}</span>
+                {/* CONTACT PREFERENCE */}
+                <div className="space-y-2.5">
+                  <label className="text-xs font-mono uppercase tracking-wider text-white font-bold flex items-center gap-2">
+                    <MessageCircle className="w-3.5 h-3.5 text-studio-red" />
+                    <span>Canal de réponse souhaité</span>
+                  </label>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {CONTACT_PREFERENCES.map((pref) => {
+                      const isSelected = contactPref === pref.id;
+                      const Icon = pref.icon;
+                      return (
+                        <div
+                          key={pref.id}
+                          onClick={() => setContactPref(pref.id)}
+                          className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                            isSelected
+                              ? 'bg-zinc-900/90 border-studio-red shadow-md shadow-studio-red/10'
+                              : 'bg-zinc-900/40 border-zinc-800 hover:border-zinc-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <Icon
+                              className={`w-3.5 h-3.5 ${
+                                isSelected ? 'text-studio-red' : 'text-zinc-500'
+                              }`}
+                            />
+                            <span
+                              className={`text-xs font-bold ${
+                                isSelected ? 'text-white' : 'text-zinc-300'
+                              }`}
+                            >
+                              {pref.label}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-zinc-500 font-light">
+                            {pref.hint}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {preferredDate && (
-                  <div>
-                    <span className="text-zinc-500 font-semibold block text-[11px]">Date souhaitée :</span>
-                    <span className="text-white">{preferredDate}</span>
-                  </div>
-                )}
+              </form>
+            )}
 
-                {preferredTime && (
-                  <div>
-                    <span className="text-zinc-500 font-semibold block text-[11px]">Heure souhaitée :</span>
-                    <span className="text-white">{preferredTime}</span>
+            {/* =========================================================================
+                STEP 3: REFINED CONFIRMATION STATE
+               ========================================================================= */}
+            {step === 3 && (
+              <div className="py-4 space-y-6 animate-in zoom-in-95 duration-300">
+                {/* Header Icon & Title */}
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 rounded-full bg-studio-red/15 border border-studio-red/40 text-studio-red flex items-center justify-center mx-auto shadow-xl shadow-studio-red/20">
+                    <CheckCircle2 className="w-9 h-9" />
                   </div>
-                )}
 
-                {email && (
-                  <div className="sm:col-span-2">
-                    <span className="text-zinc-500 font-semibold block text-[11px]">Email :</span>
-                    <span className="text-white">{email}</span>
+                  <div className="space-y-1.5 max-w-md mx-auto">
+                    <span className="inline-block px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+                      Demande enregistrée
+                    </span>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">
+                      Votre demande est entre nos mains.
+                    </h3>
+                    <p className="text-xs sm:text-sm text-zinc-400 font-light leading-relaxed">
+                      Nous avons bien reçu votre projet. Votre réservation sera confirmée après vérification technique des créneaux par notre équipe.
+                    </p>
                   </div>
-                )}
+                </div>
 
-                {message && (
-                  <div className="sm:col-span-2 pt-1 border-t border-zinc-800/60">
-                    <span className="text-zinc-500 font-semibold block text-[11px]">Message / Détails :</span>
-                    <p className="text-zinc-300 leading-relaxed italic mt-0.5">{message}</p>
+                {/* Status Notice: Explicitly stating that booking requires confirmation */}
+                <div className="p-4 rounded-2xl bg-zinc-900/70 border border-zinc-800 space-y-2 text-xs">
+                  <div className="flex items-center gap-2 font-bold text-white uppercase text-[11px] tracking-wide">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                    <span>Statut : En attente de confirmation manuelle</span>
                   </div>
-                )}
+                  <p className="text-zinc-400 font-light leading-relaxed">
+                    Un responsable de TRA Studio va étudier vos contraintes techniques (configuration des caméras 4K, micros, régie) et vous contactera sous 24h via{' '}
+                    <strong className="text-white">
+                      {CONTACT_PREFERENCES.find((p) => p.id === contactPref)?.label || 'WhatsApp'}
+                    </strong>{' '}
+                    pour valider la date et l’heure définitive de votre séance.
+                  </p>
+                </div>
+
+                {/* Recap Card */}
+                <div className="p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 space-y-3 text-xs">
+                  <div className="border-b border-zinc-800 pb-2 flex items-center justify-between">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">
+                      Récapitulatif de votre demande :
+                    </span>
+                    <span className="text-studio-red font-mono text-[10px] font-bold">
+                      TÉMARA STUDIO
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-zinc-300">
+                    <div>
+                      <span className="text-zinc-500 font-mono text-[10px] block">Service :</span>
+                      <span className="text-white font-semibold">{service}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-zinc-500 font-mono text-[10px] block">Responsable :</span>
+                      <span className="text-white font-semibold">{fullName}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-zinc-500 font-mono text-[10px] block">Téléphone :</span>
+                      <span className="text-white font-mono">{phone}</span>
+                    </div>
+
+                    {preferredDate && (
+                      <div>
+                        <span className="text-zinc-500 font-mono text-[10px] block">Date & Heure :</span>
+                        <span className="text-white">{preferredDate} {preferredTime && `(${preferredTime})`}</span>
+                      </div>
+                    )}
+
+                    {email && (
+                      <div className="sm:col-span-2">
+                        <span className="text-zinc-500 font-mono text-[10px] block">E-mail :</span>
+                        <span className="text-white font-mono">{email}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Direct WhatsApp Call to Action */}
+                <div className="space-y-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleOpenWhatsAppDirectly}
+                    className="w-full h-13 rounded-2xl bg-studio-red hover:bg-studio-redHover text-white font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-studio-red/30 transition-all cursor-pointer active:scale-[0.98]"
+                  >
+                    <WhatsAppIcon className="w-5 h-5 fill-current" />
+                    <span>Échanger directement sur WhatsApp</span>
+                    <ExternalLink className="w-4 h-4 ml-1 opacity-80" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="w-full py-3 rounded-xl bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    Fermer et retourner au site
+                  </button>
+                </div>
               </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-2.5 pt-1">
-              <button
-                type="button"
-                onClick={handleOpenWhatsAppManually}
-                className="w-full h-13 rounded-2xl bg-studio-red hover:bg-studio-redHover text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-studio-red/30 transition-all cursor-pointer active:scale-[0.98]"
-              >
-                <WhatsAppIcon className="w-5 h-5 fill-current" />
-                <span>Ouvrir WhatsApp pour envoyer</span>
-                <ExternalLink className="w-4 h-4 ml-1" />
-              </button>
-
-              <div className="flex items-center justify-between gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setView('form')}
-                  className="py-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Modifier mes informations</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="py-2 text-xs font-semibold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
-                >
-                  Fermer
-                </button>
-              </div>
-            </div>
+            )}
           </div>
-        )}
+
+          {/* =========================================================================
+              DRAWER FOOTER (Sticky Navigation / Primary Action Bar)
+             ========================================================================= */}
+          {step !== 3 && (
+            <div className="flex-shrink-0 px-6 sm:px-8 py-5 border-t border-zinc-800/80 bg-[#09090b]/95 backdrop-blur-md flex items-center justify-between gap-4">
+              {step === 1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2.5 text-xs font-medium text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+
+                  <button
+                    type="submit"
+                    form="booking-step-1"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-studio-red hover:bg-studio-redHover text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-studio-red/25 transition-all cursor-pointer active:scale-95 group"
+                  >
+                    <span>Continuer</span>
+                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleBackToStep1}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Retour</span>
+                  </button>
+
+                  <button
+                    type="submit"
+                    form="booking-step-2"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center gap-2.5 px-7 py-3 rounded-full bg-studio-red hover:bg-studio-redHover disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-studio-red/25 transition-all cursor-pointer active:scale-95"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Transmission...</span>
+                      </>
+                    ) : (
+                      <>
+                        <WhatsAppIcon className="w-4 h-4 fill-current" />
+                        <span>Envoyer ma demande</span>
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
