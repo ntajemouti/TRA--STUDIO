@@ -358,9 +358,10 @@ export const StudioBookingModal: React.FC<StudioBookingModalProps> = ({
           phone: phone.trim(),
           email: email.trim() || undefined,
           service,
-          preferredDate: `${formattedSelectedDate} (${duration})`,
+          preferredDate: formattedSelectedDate,
           preferredTime: selectedTime,
-          message: fullMessage,
+          duration: duration,
+          message: message.trim() || undefined,
         },
         targetNumber
       );
